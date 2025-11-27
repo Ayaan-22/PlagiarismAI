@@ -4,8 +4,8 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 
 ## ✨ Features
 
-- **🚀 Advanced AI Detection**: Uses `SentenceTransformer` (all-MiniLM-L6-v2) for semantic similarity checking, going beyond simple keyword matching.
-- **📄 PDF Support**: Drag and drop PDF files for instant analysis.
+- **🚀 Advanced AI Detection**: Uses `SentenceTransformer` (paraphrase-multilingual-MiniLM-L12-v2) for semantic similarity checking, supporting 50+ languages.
+- **📂 Multi-Format Support**: Drag and drop PDF, DOCX, or TXT files for instant analysis.
 - **📝 Text Analysis**: Paste text directly to check for plagiarism.
 - **🎨 Premium UI**:
   - Glassmorphism design with vibrant gradients.
@@ -15,14 +15,15 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
   - Visual plagiarism score ring.
   - Detailed match breakdown with source links.
   - Similarity percentage for each match.
+  - **Downloadable Reports**: Save your analysis as a text file.
 
 ## 🛠️ Tech Stack
 
 ### Backend
 
 - **FastAPI**: High-performance web framework for building APIs.
-- **Sentence Transformers**: State-of-the-art model for generating sentence embeddings.
-- **PyPDF2**: For extracting text from PDF documents.
+- **Sentence Transformers**: State-of-the-art multilingual model for generating sentence embeddings.
+- **PyPDF2 & python-docx**: For extracting text from PDF and DOCX documents.
 - **SerpAPI**: For searching the web for matching content.
 
 ### Frontend

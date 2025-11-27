@@ -4,6 +4,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sentence_transformers import SentenceTransformer, util
 from PyPDF2 import PdfReader
+import docx
 from dotenv import load_dotenv
 import os
 
@@ -20,15 +21,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# Switch to multilingual model
+model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+# model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-def extract_pdf_text(pdf):
-    reader = PdfReader(pdf)
+def extract_pdf_text(file_bytes):
+    reader = PdfReader(io.BytesIO(file_bytes))
     text = ""
     for page in reader.pages:
         text += page.extract_text() or ""
     return text
+
+
+def extract_docx_text(file_bytes):
+    doc = docx.Document(io.BytesIO(file_bytes))
+    return "\n".join([para.text for para in doc.paragraphs])
+
+
+def extract_txt_text(file_bytes):
+    return file_bytes.decode("utf-8", errors="ignore")
 
 
 def chunk_text(text, size=700):
@@ -60,10 +72,20 @@ def compute_similarity(a, b):
 @app.post("/check")
 async def check_plagiarism(text: str = Form(None), file: UploadFile = File(None)):
 
-    # PDF support
+    # File support (PDF, DOCX, TXT)
     if file:
-        pdf_bytes = await file.read()
-        text = extract_pdf_text(io.BytesIO(pdf_bytes))
+        file_bytes = await file.read()
+        filename = file.filename.lower()
+        
+        if filename.endswith(".pdf"):
+            text = extract_pdf_text(file_bytes)
+        elif filename.endswith(".docx"):
+            text = extract_docx_text(file_bytes)
+        elif filename.endswith(".txt"):
+            text = extract_txt_text(file_bytes)
+        else:
+            return {"error": "Unsupported file format. Please upload PDF, DOCX, or TXT."}
+
 
     if not text:
         return {"error": "No text provided"}

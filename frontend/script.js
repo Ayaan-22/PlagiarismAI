@@ -82,10 +82,23 @@ uploadArea.addEventListener("drop", (e) => {
   uploadArea.classList.remove("drag-over");
 
   const files = e.dataTransfer.files;
-  if (files.length > 0 && files[0].type === "application/pdf") {
-    handleFileSelect(files[0]);
-  } else {
-    showError("Please upload a PDF file");
+  if (files.length > 0) {
+    const file = files[0];
+    const validTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+    ];
+
+    // Check extension as fallback
+    const validExtensions = [".pdf", ".docx", ".txt"];
+    const extension = "." + file.name.split(".").pop().toLowerCase();
+
+    if (validTypes.includes(file.type) || validExtensions.includes(extension)) {
+      handleFileSelect(file);
+    } else {
+      showError("Please upload a PDF, DOCX, or TXT file");
+    }
   }
 });
 
@@ -128,7 +141,7 @@ textInput.addEventListener("input", (e) => {
 submitBtn.addEventListener("click", async () => {
   // Validate input
   if (currentTab === "file" && !selectedFile) {
-    showError("Please upload a PDF file");
+    showError("Please upload a PDF, DOCX, or TXT file");
     return;
   }
 
@@ -366,6 +379,63 @@ newCheckBtn.addEventListener("click", () => {
 
   // Scroll to upload section
   document.getElementById("checker").scrollIntoView({ behavior: "smooth" });
+});
+
+// ===================================
+// Download Report
+// ===================================
+const downloadBtn = document.getElementById("download-btn");
+
+downloadBtn.addEventListener("click", () => {
+  const score = plagiarismScore.textContent;
+  const originality = originalityScore.textContent;
+  const matches = Array.from(matchesList.children)
+    .map((card) => {
+      if (card.querySelector(".match-text")) {
+        return {
+          text: card.querySelector(".match-text").textContent,
+          similarity: card
+            .querySelector(".similarity-badge")
+            .textContent.trim(),
+          source: card.querySelector(".match-source a").href,
+        };
+      }
+      return null;
+    })
+    .filter((m) => m);
+
+  const report = `Plagiarism Analysis Report
+Date: ${new Date().toLocaleString()}
+
+Summary:
+-----------------------------------
+Plagiarism Score: ${score}
+Originality Score: ${originality}
+Sources Found: ${matches.length}
+
+Matches:
+-----------------------------------
+${matches
+  .map(
+    (m, i) => `
+Match #${i + 1}
+Similarity: ${m.similarity}
+Source: ${m.source}
+Content: ${m.text}
+`
+  )
+  .join("\n")}
+`;
+
+  const blob = new Blob([report], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "plagiarism-report.txt";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 });
 
 // ===================================
