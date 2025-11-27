@@ -2,6 +2,7 @@
 // Configuration
 // ===================================
 const API_URL = "http://127.0.0.1:9001/check";
+const HEALTH_CHECK_URL = "http://127.0.0.1:9001/health";
 
 // ===================================
 // DOM Elements
@@ -524,6 +525,41 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     }
   });
 });
+
+// ===================================
+// Connection Status Check
+// ===================================
+const connectionStatus = document.getElementById("connection-status");
+const statusText = connectionStatus.querySelector(".status-text");
+
+async function checkBackendConnection() {
+  try {
+    const response = await fetch(HEALTH_CHECK_URL, {
+      method: "GET",
+      signal: AbortSignal.timeout(3000), // 3 second timeout
+    });
+
+    if (response.ok) {
+      connectionStatus.classList.remove("disconnected");
+      connectionStatus.classList.add("connected");
+      statusText.textContent = "Connected";
+      return true;
+    } else {
+      throw new Error("Backend not responding");
+    }
+  } catch (error) {
+    connectionStatus.classList.remove("connected");
+    connectionStatus.classList.add("disconnected");
+    statusText.textContent = "Disconnected";
+    return false;
+  }
+}
+
+// Check connection on load
+checkBackendConnection();
+
+// Check connection every 10 seconds
+setInterval(checkBackendConnection, 10000);
 
 // ===================================
 // Initialize

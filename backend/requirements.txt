@@ -5,3 +5,4 @@ sentence-transformers
 PyPDF2
 requests
 python-docx
+aiohttp
