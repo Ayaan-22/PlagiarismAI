@@ -36,6 +36,7 @@ const plagiarismScore = document.getElementById("plagiarism-score");
 const scoreRingFill = document.getElementById("score-ring-fill");
 const originalityScore = document.getElementById("originality-score");
 const sourcesFound = document.getElementById("sources-found");
+const citedChunks = document.getElementById("cited-chunks");
 const matchesList = document.getElementById("matches-list");
 
 // ===================================
@@ -243,7 +244,7 @@ function hideLoading() {
 // Results Display
 // ===================================
 function displayResults(data) {
-  const { plagiarism_percent, matches } = data;
+  const { plagiarism_percent, matches, summary } = data;
 
   // Show results section
   resultsSection.style.display = "block";
@@ -254,7 +255,14 @@ function displayResults(data) {
   // Display plagiarism score
   plagiarismScore.textContent = `${plagiarism_percent}%`;
   originalityScore.textContent = `${(100 - plagiarism_percent).toFixed(1)}%`;
-  sourcesFound.textContent = matches.length;
+
+  if (summary) {
+    sourcesFound.textContent = summary.chunks_with_matches;
+    if (citedChunks) citedChunks.textContent = summary.citation_safe_chunks;
+  } else {
+    sourcesFound.textContent = matches.length;
+    if (citedChunks) citedChunks.textContent = "0";
+  }
 
   // Animate score ring
   const circumference = 2 * Math.PI * 85; // radius = 85
@@ -333,6 +341,9 @@ function displayMatches(matches) {
   matches.forEach((match, index) => {
     const matchCard = document.createElement("div");
     matchCard.className = "match-card";
+    if (match.citation_safe) {
+      matchCard.classList.add("citation-safe");
+    }
     matchCard.style.animationDelay = `${index * 0.1}s`;
 
     const similarity = match.similarity;
@@ -340,15 +351,48 @@ function displayMatches(matches) {
     if (similarity > 70) similarityClass = "similarity-high";
     else if (similarity > 40) similarityClass = "similarity-medium";
 
+    // Status Color
+    let statusClass = "status-warning";
+    if (match.citation_safe) statusClass = "status-safe";
+    else if (similarity > 60) statusClass = "status-danger";
+
+    // Recommendation Color
+    let recClass = "recommendation-warning";
+    if (match.citation_safe) recClass = "recommendation-safe";
+    else if (similarity > 60) recClass = "recommendation-danger";
+
     matchCard.innerHTML = `
             <div class="match-header">
                 <div class="match-similarity">
-                    <span class="similarity-badge ${similarityClass}">
-                        ${similarity}% Match
-                    </span>
+                    ${
+                      match.citation_safe
+                        ? `<span class="citation-badge">
+                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                             </svg>
+                             Cited (${match.citation_style})
+                           </span>`
+                        : `<span class="similarity-badge ${similarityClass}">
+                            ${similarity}% Match
+                           </span>`
+                    }
                 </div>
             </div>
+            
+            <div class="match-status ${statusClass}">
+                ${
+                  match.status ||
+                  (match.citation_safe
+                    ? "Properly Cited"
+                    : "Potential Plagiarism")
+                }
+            </div>
+
             <p class="match-text">"${match.chunk}"</p>
+            
+            ${
+              match.source && match.source !== "Citation Detected"
+                ? `
             <div class="match-source">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
@@ -357,9 +401,29 @@ function displayMatches(matches) {
                 <span>Source: <a href="${
                   match.source
                 }" target="_blank" rel="noopener noreferrer">${truncateUrl(
-      match.source
-    )}</a></span>
-            </div>
+                    match.source
+                  )}</a></span>
+            </div>`
+                : ""
+            }
+            
+            ${
+              match.recommendation
+                ? `
+            <div class="match-recommendation ${recClass}">
+                <h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Recommendation
+                </h4>
+                <p>${match.recommendation}</p>
+            </div>`
+                : ""
+            }
+
             ${
               match.matched_content
                 ? `
