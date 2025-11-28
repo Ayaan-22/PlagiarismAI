@@ -81,7 +81,7 @@ logger = logging.getLogger("plagiarism-checker")
 
 app = FastAPI(
     title="Plagiarism Checker API",
-    version="1.1.0",
+    version="5.0.0",
     description="Async plagiarism checker with citation awareness.",
 )
 

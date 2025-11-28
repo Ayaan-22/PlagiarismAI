@@ -1,42 +1,47 @@
 # 🧠 AI Plagiarism Checker
 
-A premium, high-accuracy plagiarism detection tool powered by advanced AI and semantic analysis. This application compares your text or PDF documents against millions of online sources to detect plagiarism with high precision.
+A premium, high-accuracy plagiarism detection tool powered by advanced AI and semantic analysis. This application compares your text or PDF documents against millions of online sources to detect plagiarism with high precision while intelligently recognizing proper citations.
 
 ## ✨ Features
 
 - **🚀 Advanced AI Detection**: Uses `SentenceTransformer` (paraphrase-multilingual-MiniLM-L12-v2) for semantic similarity checking, supporting 50+ languages.
+- **🎓 Smart Citation Detection**:
+  - Automatically identifies academic citations (APA, MLA, IEEE, Chicago, etc.).
+  - **Excludes cited content** from plagiarism scores.
+  - Provides specific recommendations (e.g., "Add citation" vs. "Rewrite").
+- **� Flexible Scan Modes**:
+  - **Quick Scan**: Fast analysis of up to 15 chunks (~10,500 chars).
+  - **Deep Scan**: Comprehensive analysis of the entire document.
 - **📂 Multi-Format Support**: Drag and drop PDF, DOCX, or TXT files for instant analysis.
-- **📝 Text Analysis**: Paste text directly to check for plagiarism.
 - **⚡ Production-Ready Performance**:
-  - Async/await processing for 10x faster analysis
-  - Parallel chunk processing with concurrency control
-  - Analyzes up to 15 chunks (~10,500 characters)
-  - Smart deduplication and filtering (>30% similarity threshold)
+  - Async/await processing for 10x faster analysis.
+  - Parallel chunk processing with concurrency control.
+  - Smart deduplication and filtering (>30% similarity threshold).
 - **🎨 Premium UI**:
   - Glassmorphism design with vibrant gradients.
   - Dark mode with animated background.
-  - Fully responsive layout for all devices.
-  - **Real-time connection indicator** - Shows backend status
-- **📊 Real-time Results**:
+  - **Real-time connection indicator**.
+  - **Citation Badges** & Status Labels.
+- **📊 Detailed Reporting**:
   - Visual plagiarism score ring.
-  - Detailed match breakdown with source links.
-  - Accurate chunk-to-chunk similarity matching.
-  - **Downloadable Reports**: Save your analysis as a text file.
+  - Breakdown of **Cited Chunks** vs. **Plagiarized Matches**.
+  - Downloadable analysis reports.
 
 ## 🛠️ Tech Stack
 
 ### Backend
 
-- **FastAPI**: High-performance async web framework for building APIs.
-- **Sentence Transformers**: State-of-the-art multilingual model for generating sentence embeddings.
-- **PyPDF2 & python-docx**: For extracting text from PDF and DOCX documents.
+- **FastAPI**: High-performance async web framework.
+- **Sentence Transformers**: State-of-the-art multilingual model for embeddings.
+- **PyPDF2 & python-docx**: Document parsing.
 - **aiohttp**: Async HTTP client for parallel web requests.
 - **SerpAPI**: For searching the web for matching content.
+- **BeautifulSoup4**: HTML cleaning and text extraction.
 
 ### Frontend
 
 - **HTML5 & CSS3**: Semantic structure with modern CSS variables and animations.
-- **JavaScript (ES6+)**: Vanilla JS for seamless interactions and API integration.
+- **JavaScript (ES6+)**: Vanilla JS for seamless interactions.
 - **Inter Font**: Clean, modern typography.
 
 ## 🚀 Getting Started
@@ -87,19 +92,17 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 
 ## 📖 Usage Guide
 
-1. **Check Connection**: Look at the top-right corner for the connection status indicator:
-   - 🟢 Green = Backend connected
-   - 🔴 Red = Backend disconnected
-2. **Select Input Method**: Choose between "Upload File" or "Paste Text" using the tabs.
-3. **Upload/Enter Content**:
-   - Drag & drop a PDF, DOCX, or TXT file.
-   - Or paste your text into the text area.
-4. **Analyze**: Click the **Analyze Content** button.
+1. **Check Connection**: Look at the top-right corner for the connection status indicator (🟢 Green = Connected).
+2. **Select Input Method**: Choose "Upload File" or "Paste Text".
+3. **Choose Scan Mode**:
+   - **Quick Scan**: Good for quick checks.
+   - **Deep Scan**: Thorough analysis for final submissions.
+4. **Analyze**: Click **Analyze Content**.
 5. **View Results**:
-   - See the overall plagiarism percentage.
-   - Review specific matches and their sources with accurate similarity scores.
-   - Download the report for your records.
-   - Click "New Check" to start over.
+   - **Plagiarism Score**: Percentage of content that matches external sources (excluding citations).
+   - **Cited Chunks**: See which parts were correctly cited.
+   - **Matches**: Review specific matches with similarity scores and recommendations.
+   - **Download Report**: Save a text summary of the analysis.
 
 ## 🤝 Contributing
 
