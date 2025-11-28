@@ -160,6 +160,12 @@ submitBtn.addEventListener("click", async () => {
     formData.append("text", textInput.value);
   }
 
+  // Get selected scan mode
+  const scanMode = document.querySelector(
+    'input[name="scan-mode"]:checked'
+  ).value;
+  formData.append("scan_mode", scanMode);
+
   // Show loading
   showLoading();
 
@@ -354,9 +360,51 @@ function displayMatches(matches) {
       match.source
     )}</a></span>
             </div>
+            ${
+              match.matched_content
+                ? `
+            <button class="preview-toggle" data-index="${index}">
+                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+                <span>Show Matched Content</span>
+            </button>
+            <div class="match-preview" id="preview-${index}" style="display: none;">
+                <div class="preview-section">
+                    <h4>Your Content:</h4>
+                    <div class="preview-content user-content">${match.chunk}</div>
+                </div>
+                <div class="preview-section">
+                    <h4>Matched Content from Source:</h4>
+                    <div class="preview-content matched-content">${match.matched_content}</div>
+                </div>
+            </div>
+            `
+                : ""
+            }
         `;
 
     matchesList.appendChild(matchCard);
+  });
+
+  // Add click handlers for preview toggles
+  document.querySelectorAll(".preview-toggle").forEach((button) => {
+    button.addEventListener("click", function () {
+      const index = this.dataset.index;
+      const preview = document.getElementById(`preview-${index}`);
+      const icon = this.querySelector(".toggle-icon");
+      const text = this.querySelector("span");
+
+      if (preview.style.display === "none") {
+        preview.style.display = "block";
+        icon.style.transform = "rotate(180deg)";
+        text.textContent = "Hide Matched Content";
+      } else {
+        preview.style.display = "none";
+        icon.style.transform = "rotate(0deg)";
+        text.textContent = "Show Matched Content";
+      }
+    });
   });
 }
 

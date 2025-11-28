@@ -544,6 +544,77 @@ body {
   margin-top: var(--spacing-xs);
 }
 
+/* Scan Mode Selector */
+.scan-mode-selector {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.scan-mode-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.scan-mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.scan-mode-option {
+  position: relative;
+  cursor: pointer;
+  display: block;
+}
+
+.scan-mode-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.scan-mode-option input[type="radio"]:checked ~ .option-content {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.option-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.option-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.scan-mode-option:hover .option-content {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .scan-mode-options {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Submit Button */
 .submit-btn {
   width: 100%;
@@ -893,19 +964,95 @@ body {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.match-source svg {
+  flex-shrink: 0;
 }
 
 .match-source a {
-  color: var(--color-secondary);
+  color: var(--color-primary);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color var(--transition-base);
 }
 
 .match-source a:hover {
-  color: var(--color-primary);
+  color: var(--color-secondary);
   text-decoration: underline;
+}
+
+/* Preview Toggle Button */
+.preview-toggle {
+  width: 100%;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  transition: all var(--transition-base);
+}
+
+.preview-toggle:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.toggle-icon {
+  transition: transform var(--transition-base);
+}
+
+/* Match Preview Section */
+.match-preview {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preview-section {
+  margin-bottom: var(--spacing-md);
+}
+
+.preview-section:last-child {
+  margin-bottom: 0;
+}
+
+.preview-section h4 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.preview-content {
+  padding: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  border-left: 3px solid rgba(139, 92, 246, 0.5);
+}
+
+.user-content {
+  border-left-color: rgba(6, 182, 212, 0.5);
+}
+
+.matched-content {
+  border-left-color: rgba(239, 68, 68, 0.5);
 }
 
 /* ===================================
@@ -915,11 +1062,6 @@ body {
   padding: var(--spacing-xl) 0;
   text-align: center;
   margin-top: var(--spacing-2xl);
-}
-
-.footer-text {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
 }
 
 /* ===================================

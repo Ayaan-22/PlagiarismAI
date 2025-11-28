@@ -6,3 +6,4 @@ PyPDF2
 requests
 python-docx
 aiohttp
+beautifulsoup4
