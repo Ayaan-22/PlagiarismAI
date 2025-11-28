@@ -1,5 +1,7 @@
 # 🧠 AI Plagiarism Checker
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
 A premium, high-accuracy plagiarism detection tool powered by advanced AI and semantic analysis. This application compares your text or PDF documents against millions of online sources to detect plagiarism with high precision while intelligently recognizing proper citations.
 
 ## ✨ Features
