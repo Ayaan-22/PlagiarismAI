@@ -19,6 +19,8 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css" />
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
   <body>
     <!-- Animated Background -->
@@ -443,10 +445,31 @@
               </svg>
               New Check
             </button>
+              New Check
+            </button>
+            
+            <div class="dropdown">
+              <button class="download-btn" id="download-dropdown-btn" style="margin-left: 10px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="dropdown-content">
+                <a href="#" id="download-txt">Text Report (.txt)</a>
+                <a href="#" id="download-pdf">PDF Report (.pdf)</a>
+              </div>
+            </div>
             <button
-              class="download-btn"
-              id="download-btn"
+              class="copy-btn"
+              id="copy-btn"
               style="margin-left: 10px"
+              title="Copy Report to Clipboard"
             >
               <svg
                 width="18"
@@ -456,11 +479,12 @@
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
               </svg>
-              Report
+              Copy
             </button>
           </div>
 
@@ -517,6 +541,20 @@
         </p>
       </footer>
     </div>
+
+    <!-- Confetti Container -->
+    <div
+      id="confetti-container"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+      "
+    ></div>
 
     <!-- Script -->
     <script src="script.js"></script>

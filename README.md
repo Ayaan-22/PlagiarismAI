@@ -29,6 +29,34 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
   - Breakdown of **Cited Chunks** vs. **Plagiarized Matches**.
   - Downloadable analysis reports.
 
+## ⚙️ How it Works
+
+1.  **Input Processing**:
+
+    - The backend accepts **PDF, DOCX, or TXT** files (or raw text).
+    - It extracts text using `PyPDF2`, `python-docx`, or standard decoding.
+    - The text is split into fixed-size **chunks** (default ~700 chars) to ensure granular analysis.
+
+2.  **Citation Analysis**:
+
+    - Before checking for plagiarism, each chunk is scanned for **citations** using regex patterns (APA, MLA, IEEE, etc.).
+    - If a valid citation is found, the chunk is marked as **"Properly Cited"** and excluded from the plagiarism score.
+
+3.  **Smart Search (SerpAPI)**:
+
+    - Uncited chunks are sent to **Google Search** via SerpAPI to find potential source matches.
+    - The system fetches the content of the top search results (HTML or PDF).
+
+4.  **Semantic Comparison**:
+
+    - The user's text and the fetched source text are converted into vector embeddings using `SentenceTransformer` (**paraphrase-multilingual-MiniLM-L12-v2**).
+    - Cosine similarity is calculated to determine how closely the texts match, even if words are paraphrased.
+
+5.  **Scoring & Reporting**:
+    - **Plagiarism Score** = (Plagiarized Chunks / Total Chunks) \* 100.
+    - Matches are categorized as **High Risk** (>60% similarity) or **Potential Plagiarism** (>30% similarity).
+    - The frontend displays these results with clear visual indicators.
+
 ## 🛠️ Tech Stack
 
 ### Backend
@@ -109,6 +137,10 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 🚀 Deployment
+
+Want to take this project live? Check out our detailed [Deployment Guide](DEPLOYMENT.md) for step-by-step instructions on how to deploy to Render (Free Tier) or use Docker.
 
 ## 📄 License
 

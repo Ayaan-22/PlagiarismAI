@@ -170,6 +170,9 @@ submitBtn.addEventListener("click", async () => {
   // Show loading
   showLoading();
 
+  // Disable submit to prevent double clicks
+  submitBtn.disabled = true;
+
   try {
     // Make API request
     const response = await fetch(API_URL, {
@@ -192,6 +195,8 @@ submitBtn.addEventListener("click", async () => {
       "An error occurred while analyzing your content. Please try again."
     );
     console.error("Error:", error);
+  } finally {
+    submitBtn.disabled = false;
   }
 });
 
@@ -322,8 +327,42 @@ function displayResults(data) {
 
   // Display matches
   displayMatches(matches);
+
+  // Trigger confetti if score is low (excellent work)
+  if (plagiarism_percent < 5) {
+    setTimeout(triggerConfetti, 500);
+  }
 }
 
+// ===================================
+// Safe helpers for text & URLs (XSS hardening)
+// ===================================
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function sanitizeUrl(url) {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    const protocol = parsed.protocol.toLowerCase();
+    if (protocol === "http:" || protocol === "https:") {
+      return parsed.href;
+    }
+    return "#";
+  } catch {
+    return "#";
+  }
+}
+
+// ===================================
+// Matches Display
+// ===================================
 function displayMatches(matches) {
   matchesList.innerHTML = "";
 
@@ -361,6 +400,23 @@ function displayMatches(matches) {
     if (match.citation_safe) recClass = "recommendation-safe";
     else if (similarity > 60) recClass = "recommendation-danger";
 
+    // Safely escaped text fields
+    const statusText = escapeHtml(
+      match.status ||
+        (match.citation_safe ? "Properly Cited" : "Potential Plagiarism")
+    );
+    const chunkText = escapeHtml(match.chunk);
+    const matchedContent = escapeHtml(match.matched_content);
+    const recommendationText = escapeHtml(match.recommendation || "");
+    const citationStyle = escapeHtml(match.citation_style || "");
+
+    const hasRealSource = match.source && match.source !== "Citation Detected";
+
+    const safeSourceUrl = hasRealSource ? sanitizeUrl(match.source) : null;
+    const safeSourceLabel = hasRealSource
+      ? escapeHtml(truncateUrl(match.source))
+      : "";
+
     matchCard.innerHTML = `
             <div class="match-header">
                 <div class="match-similarity">
@@ -370,7 +426,7 @@ function displayMatches(matches) {
                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                              </svg>
-                             Cited (${match.citation_style})
+                             Cited (${citationStyle})
                            </span>`
                         : `<span class="similarity-badge ${similarityClass}">
                             ${similarity}% Match
@@ -380,35 +436,26 @@ function displayMatches(matches) {
             </div>
             
             <div class="match-status ${statusClass}">
-                ${
-                  match.status ||
-                  (match.citation_safe
-                    ? "Properly Cited"
-                    : "Potential Plagiarism")
-                }
+                ${statusText}
             </div>
 
-            <p class="match-text">"${match.chunk}"</p>
+            <p class="match-text">"${chunkText}"</p>
             
             ${
-              match.source && match.source !== "Citation Detected"
+              hasRealSource && safeSourceUrl
                 ? `
             <div class="match-source">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                 </svg>
-                <span>Source: <a href="${
-                  match.source
-                }" target="_blank" rel="noopener noreferrer">${truncateUrl(
-                    match.source
-                  )}</a></span>
+                <span>Source: <a href="${safeSourceUrl}" target="_blank" rel="noopener noreferrer">${safeSourceLabel}</a></span>
             </div>`
                 : ""
             }
             
             ${
-              match.recommendation
+              recommendationText
                 ? `
             <div class="match-recommendation ${recClass}">
                 <h4>
@@ -419,7 +466,7 @@ function displayMatches(matches) {
                     </svg>
                     Recommendation
                 </h4>
-                <p>${match.recommendation}</p>
+                <p>${recommendationText}</p>
             </div>`
                 : ""
             }
@@ -436,11 +483,11 @@ function displayMatches(matches) {
             <div class="match-preview" id="preview-${index}" style="display: none;">
                 <div class="preview-section">
                     <h4>Your Content:</h4>
-                    <div class="preview-content user-content">${match.chunk}</div>
+                    <div class="preview-content user-content">${chunkText}</div>
                 </div>
                 <div class="preview-section">
                     <h4>Matched Content from Source:</h4>
-                    <div class="preview-content matched-content">${match.matched_content}</div>
+                    <div class="preview-content matched-content">${matchedContent}</div>
                 </div>
             </div>
             `
@@ -495,27 +542,49 @@ newCheckBtn.addEventListener("click", () => {
 });
 
 // ===================================
-// Download Report
+// Download Report  (fixed for citation-safe cards)
 // ===================================
-const downloadBtn = document.getElementById("download-btn");
+// ===================================
+// Download Report (PDF & TXT)
+// ===================================
+const downloadTxtBtn = document.getElementById("download-txt");
+const downloadPdfBtn = document.getElementById("download-pdf");
 
-downloadBtn.addEventListener("click", () => {
+function getReportData() {
   const score = plagiarismScore.textContent;
   const originality = originalityScore.textContent;
+
   const matches = Array.from(matchesList.children)
     .map((card) => {
-      if (card.querySelector(".match-text")) {
-        return {
-          text: card.querySelector(".match-text").textContent,
-          similarity: card
-            .querySelector(".similarity-badge")
-            .textContent.trim(),
-          source: card.querySelector(".match-source a").href,
-        };
-      }
-      return null;
+      const textEl = card.querySelector(".match-text");
+      if (!textEl) return null;
+
+      const similarityEl = card.querySelector(".similarity-badge");
+      const citationEl = card.querySelector(".citation-badge");
+
+      const similarity = similarityEl
+        ? similarityEl.textContent.trim()
+        : citationEl
+        ? citationEl.textContent.trim()
+        : "N/A";
+
+      const sourceEl = card.querySelector(".match-source a");
+      const source = sourceEl ? sourceEl.href : "N/A";
+
+      return {
+        text: textEl.textContent,
+        similarity,
+        source,
+      };
     })
     .filter((m) => m);
+
+  return { score, originality, matches };
+}
+
+downloadTxtBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  const { score, originality, matches } = getReportData();
 
   const report = `Plagiarism Analysis Report
 Date: ${new Date().toLocaleString()}
@@ -550,6 +619,195 @@ Content: ${m.text}
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
+
+downloadPdfBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  const { score, originality, matches } = getReportData();
+  const { jsPDF } = window.jspdf;
+
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  let y = 20;
+
+  // Title
+  doc.setFontSize(22);
+  doc.setTextColor(139, 92, 246); // Primary color
+  doc.text("Plagiarism Analysis Report", margin, y);
+  y += 10;
+
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(`Date: ${new Date().toLocaleString()}`, margin, y);
+  y += 15;
+
+  // Summary Box
+  doc.setDrawColor(200);
+  doc.setFillColor(245, 247, 250);
+  doc.rect(margin, y, pageWidth - 2 * margin, 35, "F");
+
+  y += 10;
+  doc.setFontSize(14);
+  doc.setTextColor(0);
+  doc.text("Summary", margin + 5, y);
+
+  y += 10;
+  doc.setFontSize(11);
+  doc.text(`Plagiarism Score: ${score}`, margin + 5, y);
+  doc.text(`Originality Score: ${originality}`, margin + 60, y);
+  doc.text(`Sources Found: ${matches.length}`, margin + 120, y);
+
+  y += 25;
+
+  // Matches
+  doc.setFontSize(14);
+  doc.setTextColor(0);
+  doc.text("Detailed Matches", margin, y);
+  y += 10;
+
+  doc.setFontSize(10);
+
+  matches.forEach((m, i) => {
+    // Check for page break
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setDrawColor(220);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 10;
+
+    doc.setFont(undefined, "bold");
+    doc.text(`Match #${i + 1}`, margin, y);
+    doc.setFont(undefined, "normal");
+
+    doc.text(`Similarity: ${m.similarity}`, margin + 40, y);
+    y += 7;
+
+    doc.setTextColor(6, 182, 212); // Link color
+    const sourceText = doc.splitTextToSize(
+      `Source: ${m.source}`,
+      pageWidth - 2 * margin
+    );
+    doc.text(sourceText, margin, y);
+    doc.setTextColor(0);
+    y += 7 * sourceText.length;
+
+    doc.setFont(undefined, "italic");
+    const contentText = doc.splitTextToSize(
+      `"${m.text}"`,
+      pageWidth - 2 * margin
+    );
+    doc.text(contentText, margin, y);
+    doc.setFont(undefined, "normal");
+
+    y += 7 * contentText.length + 5;
+  });
+
+  if (matches.length === 0) {
+    doc.text("No plagiarism detected. Great job!", margin, y);
+  }
+
+  doc.save("plagiarism-report.pdf");
+});
+
+const copyBtn = document.getElementById("copy-btn");
+
+copyBtn.addEventListener("click", () => {
+  const score = plagiarismScore.textContent;
+  const originality = originalityScore.textContent;
+
+  const matches = Array.from(matchesList.children)
+    .map((card) => {
+      const textEl = card.querySelector(".match-text");
+      if (!textEl) return null;
+
+      const similarityEl = card.querySelector(".similarity-badge");
+      const citationEl = card.querySelector(".citation-badge");
+
+      const similarity = similarityEl
+        ? similarityEl.textContent.trim()
+        : citationEl
+        ? citationEl.textContent.trim()
+        : "N/A";
+
+      const sourceEl = card.querySelector(".match-source a");
+      const source = sourceEl ? sourceEl.href : "N/A";
+
+      return {
+        text: textEl.textContent,
+        similarity,
+        source,
+      };
+    })
+    .filter((m) => m);
+
+  const report = `Plagiarism Analysis Report
+Date: ${new Date().toLocaleString()}
+
+Summary:
+-----------------------------------
+Plagiarism Score: ${score}
+Originality Score: ${originality}
+Sources Found: ${matches.length}
+
+Matches:
+-----------------------------------
+${matches
+  .map(
+    (m, i) => `
+Match #${i + 1}
+Similarity: ${m.similarity}
+Source: ${m.source}
+Content: ${m.text}
+`
+  )
+  .join("\n")}
+`;
+
+  navigator.clipboard.writeText(report).then(() => {
+    const originalText = copyBtn.innerHTML;
+    copyBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      Copied!
+    `;
+    copyBtn.classList.add("copied");
+
+    setTimeout(() => {
+      copyBtn.innerHTML = originalText;
+      copyBtn.classList.remove("copied");
+    }, 2000);
+  });
+});
+
+// ===================================
+// Confetti Effect
+// ===================================
+function triggerConfetti() {
+  const container = document.getElementById("confetti-container");
+  const colors = ["#8b5cf6", "#06b6d4", "#ec4899", "#10b981", "#f59e0b"];
+
+  for (let i = 0; i < 100; i++) {
+    const confetti = document.createElement("div");
+    confetti.className = "confetti";
+    confetti.style.left = Math.random() * 100 + "vw";
+    confetti.style.top = -10 + "px";
+    confetti.style.backgroundColor =
+      colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDuration = Math.random() * 3 + 2 + "s";
+    confetti.style.opacity = Math.random();
+    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+    container.appendChild(confetti);
+
+    setTimeout(() => {
+      confetti.remove();
+    }, 5000);
+  }
+}
 
 // ===================================
 // Utility Functions
@@ -646,10 +904,13 @@ const statusText = connectionStatus.querySelector(".status-text");
 
 async function checkBackendConnection() {
   try {
-    const response = await fetch(HEALTH_CHECK_URL, {
-      method: "GET",
-      signal: AbortSignal.timeout(3000), // 3 second timeout
-    });
+    const opts = { method: "GET" };
+    // Gracefully handle older browsers that don't support AbortSignal.timeout
+    if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
+      opts.signal = AbortSignal.timeout(3000);
+    }
+
+    const response = await fetch(HEALTH_CHECK_URL, opts);
 
     if (response.ok) {
       connectionStatus.classList.remove("disconnected");
