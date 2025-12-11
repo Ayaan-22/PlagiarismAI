@@ -1,8 +1,9 @@
 // ===================================
 // Configuration
 // ===================================
-const API_URL = "http://127.0.0.1:9001/check";
-const HEALTH_CHECK_URL = "http://127.0.0.1:9001/health";
+const API_BASE_URL = "http://127.0.0.1:9002";
+const API_URL = `${API_BASE_URL}/check`;
+const HEALTH_CHECK_URL = `${API_BASE_URL}/health`;
 
 // ===================================
 // DOM Elements
@@ -132,10 +133,13 @@ removeFileBtn.addEventListener("click", (e) => {
 // ===================================
 // Text Input Handling
 // ===================================
-textInput.addEventListener("input", (e) => {
-  const count = e.target.value.length;
-  charCount.textContent = count.toLocaleString();
-});
+textInput.addEventListener(
+  "input",
+  debounce((e) => {
+    const count = e.target.value.length;
+    charCount.textContent = count.toLocaleString();
+  }, 100)
+); // 100ms debounce for smoother typing
 
 // ===================================
 // Form Submission
@@ -852,6 +856,18 @@ function truncateUrl(url) {
   } catch {
     return url.length > 50 ? url.substring(0, 50) + "..." : url;
   }
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
 // ===================================

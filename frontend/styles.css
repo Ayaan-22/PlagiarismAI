@@ -105,6 +105,8 @@ body {
     var(--color-bg-dark) 0%,
     var(--color-bg-darker) 100%
   );
+  /* Optimization: ensure this container doesn't force re-layouts */
+  contain: strict;
 }
 
 .gradient-orb {
@@ -113,6 +115,11 @@ body {
   filter: blur(80px);
   opacity: 0.4;
   animation: float 20s infinite ease-in-out;
+  /* Optimization: Hardware acceleration hints */
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  pointer-events: none; /* Ensure mouse events pass through */
 }
 
 .orb-1 {
@@ -149,17 +156,38 @@ body {
 @keyframes float {
   0%,
   100% {
-    transform: translate(0, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
   25% {
-    transform: translate(50px, 50px) scale(1.1);
+    transform: translate3d(50px, 50px, 0) scale(1.1);
   }
   50% {
-    transform: translate(-30px, 80px) scale(0.9);
+    transform: translate3d(-30px, 80px, 0) scale(0.9);
   }
   75% {
-    transform: translate(40px, -40px) scale(1.05);
+    transform: translate3d(40px, -40px, 0) scale(1.05);
   }
+}
+
+/* ===================================
+   Custom Scrollbar
+   =================================== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-bg-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
 }
 
 /* ===================================

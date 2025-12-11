@@ -11,7 +11,7 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
   - Automatically identifies academic citations (APA, MLA, IEEE, Chicago, etc.).
   - **Excludes cited content** from plagiarism scores.
   - Provides specific recommendations (e.g., "Add citation" vs. "Rewrite").
-- **� Flexible Scan Modes**:
+- **🔄 Flexible Scan Modes**:
   - **Quick Scan**: Fast analysis of up to 15 chunks (~10,500 chars).
   - **Deep Scan**: Comprehensive analysis of the entire document.
 - **📂 Multi-Format Support**: Drag and drop PDF, DOCX, or TXT files for instant analysis.
@@ -22,12 +22,13 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 - **🎨 Premium UI**:
   - Glassmorphism design with vibrant gradients.
   - Dark mode with animated background.
-  - **Real-time connection indicator**.
+  - **Real-time connection indicator** to check backend status.
   - **Citation Badges** & Status Labels.
+  - **Confetti Celebration** for high originality scores!
 - **📊 Detailed Reporting**:
   - Visual plagiarism score ring.
   - Breakdown of **Cited Chunks** vs. **Plagiarized Matches**.
-  - Downloadable analysis reports.
+  - **Client-side PDF & TXT Reports** generation (via jsPDF).
 
 ## ⚙️ How it Works
 
@@ -45,7 +46,7 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 3.  **Smart Search (SerpAPI)**:
 
     - Uncited chunks are sent to **Google Search** via SerpAPI to find potential source matches.
-    - The system fetches the content of the top search results (HTML or PDF).
+    - The system fetches the content of the top search results using **browser-mimicking headers** and **robust compression handling** (Brotli) to bypass common scraping blocks.
 
 4.  **Semantic Comparison**:
 
@@ -65,13 +66,17 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 - **Sentence Transformers**: State-of-the-art multilingual model for embeddings.
 - **PyPDF2 & python-docx**: Document parsing.
 - **aiohttp**: Async HTTP client for parallel web requests.
-- **SerpAPI**: For searching the web for matching content.
+- **SerpAPI**: Leveraged via direct async API calls for robust web searching.
 - **BeautifulSoup4**: HTML cleaning and text extraction.
+- **python-multipart**: For handling file uploads in FastAPI.
+- **langdetect**: Auto-detects input language for optimized search.
+- **brotli**: Handles compressed responses from web servers.
 
 ### Frontend
 
-- **HTML5 & CSS3**: Semantic structure with modern CSS variables and animations.
+- **HTML5 & CSS3**: Semantic structure with modern CSS variables, animations, and glassmorphism.
 - **JavaScript (ES6+)**: Vanilla JS for seamless interactions.
+- **jsPDF**: Client-side PDF report generation.
 - **Inter Font**: Clean, modern typography.
 
 ## 🚀 Getting Started
@@ -113,7 +118,7 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
    python main.py
    ```
 
-   The server will start at `http://127.0.0.1:9001`.
+   The server will start at `http://127.0.0.1:9002`.
 
 2. **Launch the Frontend**
    Simply open the `frontend/index.html` file in your web browser.

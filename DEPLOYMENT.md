@@ -33,9 +33,11 @@ This guide explains how to deploy the Plagiarism Checker to a live environment. 
 1.  **Update API URL**:
 
     - Open `frontend/script.js`.
-    - Find `const API_URL` and `const HEALTH_CHECK_URL`.
-    - Replace `http://127.0.0.1:9001` with your **new Backend URL** from Part 1.
-      - Example: `const API_URL = "https://plagiarism-checker-backend.onrender.com/check";`
+    - Find the configuration section at the top.
+    - Replace the `API_BASE_URL` constant with your **new Backend URL** from Part 1.
+    - **Do NOT** include the trailing slash.
+      - Example: `const API_BASE_URL = "https://plagiarism-checker-backend.onrender.com";`
+    - The `API_URL` and `HEALTH_CHECK_URL` will automatically update based on this base URL.
     - Commit and push this change to GitHub.
 
 2.  **Create a New Static Site on Render**:

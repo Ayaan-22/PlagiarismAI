@@ -26,6 +26,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer, util
+from langdetect import detect, LangDetectException
 
 # ---------------------------------------------------------
 # Environment & Config
@@ -39,8 +40,9 @@ CHUNK_SIZE = 700  # characters per chunk
 MAX_PAGE_CHUNKS_PER_SOURCE = 20
 MIN_PAGE_CHUNK_LENGTH = 50
 
-SIMILARITY_THRESHOLD = 30.0  # %
-HIGH_SIMILARITY_THRESHOLD = 60.0  # % (for stronger warnings)
+# Tuned thresholds
+SIMILARITY_THRESHOLD = 45.0  # %
+HIGH_SIMILARITY_THRESHOLD = 65.0  # % (for stronger warnings)
 
 MAX_CHUNKS_QUICK_SCAN = 15
 HTTP_TIMEOUT_SECONDS = 10
@@ -49,20 +51,23 @@ MAX_RESULTS_PER_CHUNK = 5  # SERP results per chunk
 MAX_MATCHES_RETURNED = 20
 MAX_PAGE_TEXT_CHARS = 35_000  # per page fetch, to avoid huge embeddings
 
+# Simple in-memory search cache (per-process)
+SEARCH_CACHE: Dict[str, List[Dict[str, Any]]] = {}
+MAX_SEARCH_CACHE_SIZE = 500
+
 # ---------------------------------------------------------
 # Citation Patterns
 # ---------------------------------------------------------
-# Note: Kept relatively broad on purpose to avoid missing citations.
-# We combine them with quote detection + context-based decisions later.
+# Note: Kept relatively broad but safer (removed over-broad r"\d+\.").
 
 CITATION_PATTERNS: List[str] = [
     r"\([A-Z][a-z]+,\s?\d{4}\)",          # (Smith, 2020)  - APA style
     r"\([A-Z][a-z]+\s\d{4}\)",            # (Smith 2020)   - Variant APA/MLA
-    r"\[[0-9]+\]",                        # [1]            - IEEE / numeric
+    r"\[[0-9]{1,3}\]",                    # [1] / [12]     - IEEE / numeric
     r"[A-Z][a-z]+\s\d{4},\s?\d+–\d+",     # Brown 1999, 17–19
     r"\d+\s?[A-Z][a-z]+\s?\d{4}",         # 12 Smith 2020  - inline numeric
     r"\bet al\.\b",                       # et al.
-    r"\d+\.",                             # 1. / 2. (footnote-like references; broad!)
+    r"\(\d{4}\)",                         # (2020) - year-only reference
 ]
 
 # ---------------------------------------------------------
@@ -81,7 +86,7 @@ logger = logging.getLogger("plagiarism-checker")
 
 app = FastAPI(
     title="Plagiarism Checker API",
-    version="5.0.0",
+    version="6.0",
     description="Async plagiarism checker with citation awareness.",
 )
 
@@ -137,22 +142,70 @@ def extract_txt_text(file_bytes: bytes) -> str:
     return file_bytes.decode("utf-8", errors="ignore")
 
 
+def build_search_query(chunk: str) -> str:
+    """
+    Build a cleaner search query by extracting important words.
+    Removes punctuation, short words, and common stopwords.
+    """
+    # Use \w which matches Unicode word characters in Python 3
+    cleaned = re.sub(r"[^\w\s]", " ", chunk)
+    words = cleaned.split()
+
+    stopwords = {
+        "the", "is", "are", "was", "were", "and", "or", "in", "of",
+        "to", "for", "a", "an", "on", "by", "with", "as", "at", "from",
+    }
+
+    keywords = [w for w in words if len(w) > 3 and w.lower() not in stopwords]
+
+    # Fallback if no good keywords
+    if not keywords:
+        return chunk[:120]
+
+    # Use first few keywords for search
+    return " ".join(keywords[:6])
+
+
 def chunk_text(text: str, size: int = CHUNK_SIZE) -> List[str]:
     """
-    Split text into fixed-size character chunks.
-
-    We don't try to be sentence-smart here on purpose;
-    this keeps behavior deterministic and simple.
+    Prefer sentence-based chunking for better semantic integrity.
+    Falls back to raw character chunking if needed.
     """
     text = text.strip()
     if not text:
         return []
 
+    # Sentence split based on punctuation
+    sentences = re.split(r"(?<=[.!?])\s+", text)
     chunks: List[str] = []
-    for i in range(0, len(text), size):
-        chunk = text[i : i + size].strip()
-        if chunk:
-            chunks.append(chunk)
+    current = ""
+
+    for s in sentences:
+        s = s.strip()
+        if not s:
+            continue
+
+        # If adding this sentence still fits, append it
+        if len(current) + len(s) + 1 <= size:  # +1 for space
+            if current:
+                current += " " + s
+            else:
+                current = s
+        else:
+            # Close current chunk and start a new one
+            if current.strip():
+                chunks.append(current.strip())
+            current = s
+
+    if current.strip():
+        chunks.append(current.strip())
+
+    # Fallback in rare cases
+    if not chunks:
+        for i in range(0, len(text), size):
+            chunk = text[i: i + size].strip()
+            if chunk:
+                chunks.append(chunk)
 
     return chunks
 
@@ -211,14 +264,18 @@ def is_safe_url(url: str) -> bool:
 def _infer_citation_style_from_pattern(pattern: str) -> str:
     """
     Roughly infer citation style based on which regex matched.
-    This is heuristic and not perfect, but good enough for feedback.
+    Heuristic, used only for feedback.
     """
-    if pattern == r"\[[0-9]+\]":
+    # Any [number] / [12] style
+    if "[" in pattern and "]" in pattern:
         return "IEEE / Numeric"
+
     if "et al" in pattern.lower():
         return "Author + et al."
-    if pattern in {r"\d+\.", r"\d+\s?[A-Z][a-z]+\s?\d{4}"}:
+
+    if pattern in {r"\d+\s?[A-Z][a-z]+\s?\d{4}"}:
         return "Footnote / Numeric"
+
     # Default fallback
     return "Author-Date (APA/MLA-like)"
 
@@ -237,7 +294,7 @@ def detect_citation(chunk: str) -> Tuple[bool, str]:
 
     # Check for quotes: if a passage is quoted and also has citation patterns,
     # we treat it as more likely properly cited.
-    has_quotes = '"' in chunk or "“" in chunk or "”" in chunk or "'" in chunk
+    has_quotes = any(q in chunk for q in ['"', "“", "”", "'"])
 
     # Match patterns case-insensitively
     for pattern in CITATION_PATTERNS:
@@ -254,11 +311,15 @@ def detect_citation(chunk: str) -> Tuple[bool, str]:
 
 
 # ---------------------------------------------------------
-# SerpAPI Search
+# SerpAPI Search (with simple cache)
 # ---------------------------------------------------------
 
 
-async def serp_search_async(query: str, session: aiohttp.ClientSession) -> List[Dict[str, Any]]:
+async def serp_search_async(
+    query: str,
+    session: aiohttp.ClientSession,
+    lang: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     """
     Async Google search using SerpAPI.
 
@@ -269,6 +330,11 @@ async def serp_search_async(query: str, session: aiohttp.ClientSession) -> List[
         logger.warning("SERPAPI_KEY not configured. Skipping web search.")
         return []
 
+    cache_key = f"{lang or 'any'}::{query}"
+    if cache_key in SEARCH_CACHE:
+        logger.debug("Using cached search results for query: %s", query)
+        return SEARCH_CACHE[cache_key]
+
     url = "https://serpapi.com/search"
     params = {
         "engine": "google",
@@ -276,6 +342,11 @@ async def serp_search_async(query: str, session: aiohttp.ClientSession) -> List[
         "api_key": SERPAPI_KEY,
         "num": MAX_RESULTS_PER_CHUNK,
     }
+
+    # If we know the language, hint it to SerpAPI / Google
+    if lang and len(lang) == 2:
+        params["hl"] = lang
+        params["lr"] = f"lang_{lang}"
 
     try:
         async with session.get(url, params=params, timeout=HTTP_TIMEOUT_SECONDS) as response:
@@ -293,10 +364,15 @@ async def serp_search_async(query: str, session: aiohttp.ClientSession) -> List[
                 if link and is_safe_url(link):
                     cleaned.append({"url": link, "snippet": snippet})
 
+            # Store in cache (simple unbounded with reset)
+            if len(SEARCH_CACHE) >= MAX_SEARCH_CACHE_SIZE:
+                SEARCH_CACHE.clear()
+            SEARCH_CACHE[cache_key] = cleaned
+
             return cleaned
 
     except asyncio.TimeoutError:
-        logger.warning("SerpAPI request timed out.")
+        logger.warning("SerpAPI request timed out for query: %s", query)
         return []
     except Exception as e:
         logger.exception("Error during SerpAPI search: %s", e)
@@ -324,7 +400,17 @@ async def fetch_page_async(url: str, session: aiohttp.ClientSession) -> str:
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/120.0.0.0 Safari/537.36"
-        )
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.google.com/",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "cross-site",
+        "Sec-Fetch-User": "?1",
     }
 
     try:
@@ -360,7 +446,10 @@ async def fetch_page_async(url: str, session: aiohttp.ClientSession) -> str:
                                 text_parts.append(t)
                         except Exception as e:
                             logger.warning(
-                                "Error extracting PDF page from %s (page %d): %s", url, page_idx, e
+                                "Error extracting PDF page from %s (page %d): %s",
+                                url,
+                                page_idx,
+                                e,
                             )
 
                     full_text = "\n".join(text_parts)
@@ -386,6 +475,7 @@ async def fetch_page_async(url: str, session: aiohttp.ClientSession) -> str:
                     tag.extract()
 
                 text = soup.get_text(separator=" ", strip=True)
+                logger.debug("Successfully fetched page: %s", url)
                 return text[:MAX_PAGE_TEXT_CHARS]
 
             # Other content types (images, videos, etc.) are skipped
@@ -488,6 +578,16 @@ async def process_chunk(
     if not chunk:
         return []
 
+    logger.info("Processing chunk %d (length=%d chars)", chunk_index, len(chunk))
+
+    # ----------------- 0. Language Detection -----------------
+    try:
+        lang = detect(chunk)
+    except LangDetectException:
+        lang = "unknown"
+
+    logger.debug("Detected language for chunk %d: %s", chunk_index, lang)
+
     # ----------------- 1. Check for citations -----------------
     is_cited, citation_style = detect_citation(chunk)
 
@@ -517,9 +617,10 @@ async def process_chunk(
 
     # ----------------- 2. Web search for uncited chunk -----------------
     async with semaphore:
-        search_query = chunk[:150]
-        logger.info("Searching web for chunk %d...", chunk_index)
-        search_results = await serp_search_async(search_query, session)
+        search_query = build_search_query(chunk)
+        logger.debug("Search query for chunk %d: %s", chunk_index, search_query)
+
+        search_results = await serp_search_async(search_query, session, lang=None if lang == "unknown" else lang)
 
         chunk_matches: List[Dict[str, Any]] = []
 
@@ -537,6 +638,12 @@ async def process_chunk(
                 continue
 
             similarity, matched_chunk = compute_best_similarity(chunk, page_text)
+            logger.debug(
+                "Similarity for chunk %d from source %s: %.2f%%",
+                chunk_index,
+                url,
+                similarity,
+            )
 
             if similarity >= SIMILARITY_THRESHOLD:
                 status_label = classify_similarity_status(similarity, cited=False)
@@ -607,6 +714,9 @@ async def check_plagiarism(
     # -------------------------------
     # Input Handling (file or text)
     # -------------------------------
+    raw_text: Optional[str] = None
+
+    # File upload takes precedence if provided
     if file is not None:
         file_bytes = await file.read()
         if len(file_bytes) == 0:
@@ -626,11 +736,11 @@ async def check_plagiarism(
 
         try:
             if filename.endswith(".pdf"):
-                text = extract_pdf_text(file_bytes)
+                raw_text = extract_pdf_text(file_bytes)
             elif filename.endswith(".docx"):
-                text = extract_docx_text(file_bytes)
+                raw_text = extract_docx_text(file_bytes)
             elif filename.endswith(".txt"):
-                text = extract_txt_text(file_bytes)
+                raw_text = extract_txt_text(file_bytes)
             else:
                 raise HTTPException(
                     status_code=400,
@@ -645,10 +755,16 @@ async def check_plagiarism(
                 status_code=500, detail="Failed to process uploaded file."
             )
 
-    if not text or not text.strip():
+    elif text is not None:
+        raw_text = text.strip()
+
+    else:
         raise HTTPException(status_code=400, detail="No text provided.")
 
-    text = text.strip()
+    if not raw_text or not raw_text.strip():
+        raise HTTPException(status_code=400, detail="Provided text is empty.")
+
+    text = raw_text.strip()
     chunks = chunk_text(text)
 
     if not chunks:
@@ -675,7 +791,7 @@ async def check_plagiarism(
     # -------------------------------
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
         tasks = [
             process_chunk(chunk, idx, session, semaphore)
             for idx, chunk in enumerate(chunks)
@@ -764,6 +880,12 @@ async def check_plagiarism(
         ),
     }
 
+    logger.info(
+        "Plagiarism check complete. Score: %.2f%%. Matches found: %d",
+        plagiarism_percent,
+        len(unique_matches),
+    )
+
     return {
         "scan_mode": scan_mode_normalized,
         "plagiarism_percent": plagiarism_percent,
@@ -775,6 +897,6 @@ async def check_plagiarism(
 if __name__ == "__main__":
     import uvicorn
 
-    # For production, run via:
-    #   uvicorn main:app --host 0.0.0.0 --port 9001
-    uvicorn.run(app, host="127.0.0.1", port=9001)
+    # For production, typically run via:
+    #   uvicorn main:app --host 0.0.0.0 --port 9002
+    uvicorn.run(app, host="127.0.0.1", port=9002)
