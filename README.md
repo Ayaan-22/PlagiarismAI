@@ -60,7 +60,7 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 
 ## 🛠️ Tech Stack
 
-### Backend
+### ⚙️ Backend
 
 - **FastAPI**: High-performance async web framework.
 - **Sentence Transformers**: State-of-the-art multilingual model for embeddings.
@@ -72,7 +72,7 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 - **langdetect**: Auto-detects input language for optimized search.
 - **brotli**: Handles compressed responses from web servers.
 
-### Frontend
+### 🎨 Frontend
 
 - **React 18**: Component-based UI library for cleaner architecture.
 - **Vite**: Next-generation frontend tooling for blazing fast builds.
@@ -81,7 +81,7 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 - **Inter Font**: Clean, modern typography.
 - **Environment Variables**: Vite-based configuration for API endpoints.
 
-## � Project Structure
+## 📁 Project Structure
 
 ```
 plagiarism-checker/
@@ -102,15 +102,15 @@ plagiarism-checker/
 └── README.md              # This file
 ```
 
-## �🚀 Getting Started
+## 🚀 Getting Started
 
-### Prerequisites
+### 📋 Prerequisites
 
 - Python 3.8+
 - Node.js & npm (for the frontend)
 - A [SerpAPI](https://serpapi.com/) API Key (for web search functionality).
 
-### Installation
+### 📦 Installation
 
 1. **Clone the repository**
 
@@ -160,7 +160,7 @@ plagiarism-checker/
 
    For production deployment, update this to your deployed backend URL.
 
-### Running the Application
+### ▶️ Running the Application
 
 1. **Start the Backend Server**
 
@@ -204,7 +204,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 Want to take this project live? Check out our detailed [Deployment Guide](DEPLOYMENT.md) for step-by-step instructions on how to deploy to Render (Free Tier) or use Docker.
 
-## � Note on Frontend Versions
+## 📝 Note on Frontend Versions
 
 This project includes two frontend implementations:
 
@@ -213,6 +213,6 @@ This project includes two frontend implementations:
 
 **We recommend using the React frontend** (`frontend/`) for all new development and deployments.
 
-## �📄 License
+## 📄 License
 
 This project is licensed under the MIT License.
