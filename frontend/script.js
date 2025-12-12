@@ -46,6 +46,22 @@ const matchesList = document.getElementById("matches-list");
 let selectedFile = null;
 let currentTab = "file";
 
+// Motion preference (respect reduced motion to avoid lag)
+const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+function applyMotionPreference(event) {
+  document.body.classList.toggle("reduced-motion", event.matches);
+}
+applyMotionPreference(motionPreference);
+// Safari uses addListener; modern browsers use addEventListener
+if (motionPreference.addEventListener) {
+  motionPreference.addEventListener("change", applyMotionPreference);
+} else if (motionPreference.addListener) {
+  motionPreference.addListener(applyMotionPreference);
+}
+function prefersReducedMotion() {
+  return document.body.classList.contains("reduced-motion");
+}
+
 // ===================================
 // Tab Switching
 // ===================================
@@ -216,6 +232,7 @@ function showLoading() {
   let sources = 0;
   let chunks = 0;
 
+  const intervalMs = prefersReducedMotion() ? 900 : 500;
   const progressInterval = setInterval(() => {
     progress += Math.random() * 15;
     if (progress > 90) progress = 90;
@@ -227,7 +244,7 @@ function showLoading() {
 
     sourcesChecked.textContent = sources;
     chunksAnalyzed.textContent = chunks;
-  }, 500);
+  }, intervalMs);
 
   // Store interval ID for cleanup
   loadingOverlay.dataset.intervalId = progressInterval;
@@ -791,10 +808,12 @@ Content: ${m.text}
 // Confetti Effect
 // ===================================
 function triggerConfetti() {
+  if (prefersReducedMotion()) return;
   const container = document.getElementById("confetti-container");
   const colors = ["#8b5cf6", "#06b6d4", "#ec4899", "#10b981", "#f59e0b"];
 
-  for (let i = 0; i < 100; i++) {
+  const totalPieces = Math.min(60, Math.max(25, Math.floor(window.innerWidth / 40)));
+  for (let i = 0; i < totalPieces; i++) {
     const confetti = document.createElement("div");
     confetti.className = "confetti";
     confetti.style.left = Math.random() * 100 + "vw";

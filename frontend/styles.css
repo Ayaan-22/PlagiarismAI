@@ -112,9 +112,10 @@ body {
 .gradient-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  /* Slightly lighter blur to reduce GPU cost */
+  filter: blur(60px);
   opacity: 0.4;
-  animation: float 20s infinite ease-in-out;
+  animation: float 22s infinite ease-in-out;
   /* Optimization: Hardware acceleration hints */
   will-change: transform;
   transform: translate3d(0, 0, 0);
@@ -151,6 +152,37 @@ body {
   bottom: -10%;
   left: 30%;
   animation-delay: 10s;
+}
+
+/* Respect users who prefer less motion */
+.reduced-motion .gradient-orb {
+  animation: none;
+  opacity: 0.2;
+  filter: blur(40px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .gradient-orb {
+    animation: none;
+    opacity: 0.2;
+    filter: blur(40px);
+  }
+
+  .floating-card,
+  .glass-card,
+  .match-card,
+  .stat-item,
+  .tab-btn,
+  button,
+  a,
+  .nav-link {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 @keyframes float {

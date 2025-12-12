@@ -17,6 +17,7 @@ import logging
 import os
 import re
 from typing import List, Dict, Tuple, Optional, Set, Any
+from collections import OrderedDict
 
 import aiohttp
 import docx
@@ -50,10 +51,13 @@ MAX_CONCURRENT_REQUESTS = 5
 MAX_RESULTS_PER_CHUNK = 5  # SERP results per chunk
 MAX_MATCHES_RETURNED = 20
 MAX_PAGE_TEXT_CHARS = 35_000  # per page fetch, to avoid huge embeddings
+EMBEDDING_MAX_CONCURRENCY = 2  # gate simultaneous embedding work
 
 # Simple in-memory search cache (per-process)
-SEARCH_CACHE: Dict[str, List[Dict[str, Any]]] = {}
+SEARCH_CACHE: "OrderedDict[str, List[Dict[str, Any]]]" = OrderedDict()
 MAX_SEARCH_CACHE_SIZE = 500
+SEARCH_WARNING: Optional[str] = None  # surfaced in API response when set
+EMBEDDING_SEMAPHORE = asyncio.Semaphore(EMBEDDING_MAX_CONCURRENCY)
 
 # ---------------------------------------------------------
 # Citation Patterns
@@ -226,6 +230,9 @@ def is_safe_url(url: str) -> bool:
 
     try:
         parsed = urlparse(url)
+        if parsed.scheme.lower() not in {"http", "https"}:
+            return False
+
         hostname = (parsed.hostname or "").lower()
 
         if not hostname:
@@ -333,6 +340,7 @@ async def serp_search_async(
     cache_key = f"{lang or 'any'}::{query}"
     if cache_key in SEARCH_CACHE:
         logger.debug("Using cached search results for query: %s", query)
+        SEARCH_CACHE.move_to_end(cache_key)
         return SEARCH_CACHE[cache_key]
 
     url = "https://serpapi.com/search"
@@ -350,6 +358,12 @@ async def serp_search_async(
 
     try:
         async with session.get(url, params=params, timeout=HTTP_TIMEOUT_SECONDS) as response:
+            if response.status in {403, 429}:
+                global SEARCH_WARNING
+                SEARCH_WARNING = "Web search limited: SerpAPI quota/auth issue."
+                logger.warning("SerpAPI quota/auth issue (status %s).", response.status)
+                return []
+
             if response.status != 200:
                 logger.warning("SerpAPI returned non-200 status: %s", response.status)
                 return []
@@ -364,10 +378,10 @@ async def serp_search_async(
                 if link and is_safe_url(link):
                     cleaned.append({"url": link, "snippet": snippet})
 
-            # Store in cache (simple unbounded with reset)
             if len(SEARCH_CACHE) >= MAX_SEARCH_CACHE_SIZE:
-                SEARCH_CACHE.clear()
+                SEARCH_CACHE.popitem(last=False)
             SEARCH_CACHE[cache_key] = cleaned
+            SEARCH_CACHE.move_to_end(cache_key)
 
             return cleaned
 
@@ -537,6 +551,16 @@ def compute_best_similarity(chunk: str, page_text: str) -> Tuple[float, str]:
     return round(max_similarity, 2), best_match_chunk
 
 
+async def compute_best_similarity_async(chunk: str, page_text: str) -> Tuple[float, str]:
+    """
+    Async wrapper with a semaphore to avoid hammering the model with too many
+    concurrent embedding calls.
+    """
+    loop = asyncio.get_running_loop()
+    async with EMBEDDING_SEMAPHORE:
+        return await loop.run_in_executor(None, compute_best_similarity, chunk, page_text)
+
+
 def classify_similarity_status(similarity: float, cited: bool) -> str:
     """
     Map similarity + citation presence to a human-readable status.
@@ -637,7 +661,7 @@ async def process_chunk(
             if not page_text:
                 continue
 
-            similarity, matched_chunk = compute_best_similarity(chunk, page_text)
+            similarity, matched_chunk = await compute_best_similarity_async(chunk, page_text)
             logger.debug(
                 "Similarity for chunk %d from source %s: %.2f%%",
                 chunk_index,
@@ -791,6 +815,9 @@ async def check_plagiarism(
     # -------------------------------
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
+    global SEARCH_WARNING
+    SEARCH_WARNING = None
+
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
         tasks = [
             process_chunk(chunk, idx, session, semaphore)
@@ -891,6 +918,7 @@ async def check_plagiarism(
         "plagiarism_percent": plagiarism_percent,
         "summary": summary,
         "matches": unique_matches,
+        "warnings": [SEARCH_WARNING] if SEARCH_WARNING else [],
     }
 
 
