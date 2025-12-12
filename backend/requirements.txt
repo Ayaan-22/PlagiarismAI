@@ -6,3 +6,7 @@ PyPDF2
 requests
 python-docx
 aiohttp
+beautifulsoup4
+python-multipart
+langdetect
+brotli

@@ -19,6 +19,8 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css" />
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
   <body>
     <!-- Animated Background -->
@@ -203,6 +205,27 @@
             </div>
           </div>
 
+          <!-- Scan Mode Selector -->
+          <div class="scan-mode-selector">
+            <label class="scan-mode-label">Scan Mode:</label>
+            <div class="scan-mode-options">
+              <label class="scan-mode-option">
+                <input type="radio" name="scan-mode" value="quick" checked />
+                <span class="option-content">
+                  <span class="option-title">⚡ Quick Scan</span>
+                  <span class="option-desc">~15 chunks, faster results</span>
+                </span>
+              </label>
+              <label class="scan-mode-option">
+                <input type="radio" name="scan-mode" value="deep" />
+                <span class="option-content">
+                  <span class="option-title">🔍 Deep Scan</span>
+                  <span class="option-desc">All content, comprehensive</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
           <!-- Submit Button -->
           <button class="submit-btn" id="submit-btn">
             <span class="btn-text">Analyze Content</span>
@@ -290,7 +313,7 @@
             </div>
             <h3 class="feature-title">Multi-Language</h3>
             <p class="feature-text">
-              Detect plagiarism in over 100 languages with our advanced
+              Detect plagiarism in over 50 languages with our advanced
               linguistic models.
             </p>
           </div>
@@ -422,10 +445,48 @@
               </svg>
               New Check
             </button>
+
+            <div class="dropdown">
+              <button
+                class="download-btn"
+                id="download-dropdown-btn"
+                style="margin-left: 10px"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  style="margin-left: 4px"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="dropdown-content">
+                <a href="#" id="download-txt">Text Report (.txt)</a>
+                <a href="#" id="download-pdf">PDF Report (.pdf)</a>
+              </div>
+            </div>
             <button
-              class="download-btn"
-              id="download-btn"
+              class="copy-btn"
+              id="copy-btn"
               style="margin-left: 10px"
+              title="Copy Report to Clipboard"
             >
               <svg
                 width="18"
@@ -435,11 +496,12 @@
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
               </svg>
-              Report
+              Copy
             </button>
           </div>
 
@@ -471,8 +533,8 @@
                 <div class="detail-value" id="sources-found">0</div>
               </div>
               <div class="score-detail-item">
-                <div class="detail-label">Confidence</div>
-                <div class="detail-value">High</div>
+                <div class="detail-label">Cited Chunks</div>
+                <div class="detail-value" id="cited-chunks">0</div>
               </div>
             </div>
           </div>
@@ -496,6 +558,20 @@
         </p>
       </footer>
     </div>
+
+    <!-- Confetti Container -->
+    <div
+      id="confetti-container"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+      "
+    ></div>
 
     <!-- Script -->
     <script src="script.js"></script>
