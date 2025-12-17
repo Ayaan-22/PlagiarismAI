@@ -7,13 +7,19 @@ const LoadingOverlay = ({ isLoading }) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (isLoading) {
-      setVisible(true);
-      setProgress(0);
-      setSources(0);
-      setChunks(0);
+    let interval;
+    let timeout;
 
-      const interval = setInterval(() => {
+    if (isLoading) {
+      if (!visible) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setVisible(true);
+        setProgress(0);
+        setSources(0);
+        setChunks(0);
+      }
+
+      interval = setInterval(() => {
         setProgress((prev) => {
           const next = prev + Math.random() * 15;
           return next > 90 ? 90 : next;
@@ -21,18 +27,20 @@ const LoadingOverlay = ({ isLoading }) => {
         setSources((prev) => prev + Math.floor(Math.random() * 50));
         setChunks((prev) => prev + Math.floor(Math.random() * 5));
       }, 500);
-
-      return () => clearInterval(interval);
     } else {
       if (visible) {
         setProgress(100);
-        const timeout = setTimeout(() => {
+        timeout = setTimeout(() => {
           setVisible(false);
         }, 500);
-        return () => clearTimeout(timeout);
       }
     }
-  }, [isLoading]);
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [isLoading, visible]);
 
   if (!visible) return null;
 

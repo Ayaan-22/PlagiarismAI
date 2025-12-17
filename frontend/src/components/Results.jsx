@@ -23,28 +23,6 @@ const Results = ({ data, onNewCheck }) => {
   const sourcesCount = summary ? summary.chunks_with_matches : matches.length;
   const citedCount = summary ? summary.citation_safe_chunks : 0;
 
-  useEffect(() => {
-    // Animate score ring
-    const circumference = 2 * Math.PI * 85; // radius = 85
-    const offset = circumference - (plagiarism_percent / 100) * circumference;
-    // Add small delay for animation
-    setTimeout(() => {
-      setScoreOffset(offset);
-    }, 100);
-
-    // Trigger confetti if score is low (< 5%)
-    if (plagiarism_percent < 5) {
-      triggerConfetti();
-    }
-  }, [plagiarism_percent]);
-
-  const toggleMatch = (index) => {
-    setExpandedMatches((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
-
   const triggerConfetti = () => {
     const container = document.getElementById("confetti-container");
     if (!container) return;
@@ -72,6 +50,28 @@ const Results = ({ data, onNewCheck }) => {
         confetti.remove();
       }, 5000);
     }
+  };
+
+  useEffect(() => {
+    // Animate score ring
+    const circumference = 2 * Math.PI * 85; // radius = 85
+    const offset = circumference - (plagiarism_percent / 100) * circumference;
+    // Add small delay for animation
+    setTimeout(() => {
+      setScoreOffset(offset);
+    }, 100);
+
+    // Trigger confetti if score is low (< 5%)
+    if (plagiarism_percent < 5) {
+      triggerConfetti();
+    }
+  }, [plagiarism_percent]);
+
+  const toggleMatch = (index) => {
+    setExpandedMatches((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
   };
 
   const getReportData = () => {
@@ -219,7 +219,7 @@ Content: ${m.text}
 
   const handleCopy = () => {
     // Quick simple copy implementation for report text (reusing txt logic roughly)
-    const { score, originality, matches: reportMatches } = getReportData();
+    const { score, originality } = getReportData();
     const report = `Plagiarism Analysis Report\nPlagiarism Score: ${score}\nOriginality Score: ${originality}`;
     navigator.clipboard.writeText(report).then(() => {
       setCopied(true);

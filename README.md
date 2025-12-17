@@ -85,11 +85,11 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 
 ```
 plagiarism-checker/
-├── backend/                 # FastAPI backend server
-│   ├── main.py             # Main application file
-│   ├── requirements.txt    # Python dependencies
+├── backend/               # FastAPI backend server
+│   ├── main.py            # Main application file
+│   ├── requirements.txt   # Python dependencies
 │   └── .env               # Backend environment variables (create this)
-├── frontend/               # React frontend (current version)
+├── frontend/              # React frontend (current version)
 │   ├── src/               # Source files
 │   │   ├── components/    # React components
 │   │   ├── App.jsx        # Main app component
@@ -97,7 +97,7 @@ plagiarism-checker/
 │   ├── .env               # Frontend environment variables (create this)
 │   ├── .env.example       # Environment variables template
 │   └── package.json       # Node dependencies
-├── frontend_legacy/        # Legacy HTML/CSS/JS frontend (deprecated)
+├── frontend_legacy/       # Legacy HTML/CSS/JS frontend (deprecated)
 ├── DEPLOYMENT.md          # Deployment guide
 └── README.md              # This file
 ```

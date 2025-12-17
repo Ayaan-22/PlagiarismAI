@@ -17,7 +17,7 @@ const Header = () => {
           setIsConnected(false);
           setStatusText("Offline");
         }
-      } catch (error) {
+      } catch {
         setIsConnected(false);
         setStatusText("Offline");
       }
