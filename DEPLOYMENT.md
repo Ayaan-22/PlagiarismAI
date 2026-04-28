@@ -30,26 +30,41 @@ This guide explains how to deploy the Plagiarism Checker to a live environment. 
 
 ### Part 2: Configure and Deploy the Frontend
 
-1.  **Update API URL**:
+1.  **Configure API URL**:
 
-    - Open `frontend/script.js`.
-    - Find the configuration section at the top.
-    - Replace the `API_BASE_URL` constant with your **new Backend URL** from Part 1.
-    - **Do NOT** include the trailing slash.
-      - Example: `const API_BASE_URL = "https://plagiarism-checker-backend.onrender.com";`
-    - The `API_URL` and `HEALTH_CHECK_URL` will automatically update based on this base URL.
-    - Commit and push this change to GitHub.
+    - Navigate to the `frontend` directory
+    - Copy `.env.example` to `.env` if it doesn't exist:
+      ```bash
+      cd frontend
+      cp .env.example .env
+      ```
+    - Update the `.env` file with your deployed backend URL:
+      ```
+      VITE_API_BASE_URL=https://plagiarism-checker-backend.onrender.com
+      ```
+      Replace `plagiarism-checker-backend.onrender.com` with your actual Render backend URL from Part 1.
 
-2.  **Create a New Static Site on Render**:
+2.  **Build the React App**:
+
+    - Run the build command locally to test:
+      ```bash
+      npm run build
+      ```
+
+3.  **Create a New Static Site on Render**:
     - Click **New +** -> **Static Site**.
     - Connect the same GitHub repository.
-3.  **Configure the Site**:
+4.  **Configure the Site**:
     - **Name**: `plagiarism-checker-frontend`
     - **Root Directory**: `frontend`
-    - **Build Command**: (Leave empty, we are just serving HTML/JS)
-    - **Publish Directory**: `.` (dot) or leave empty to serve the root of `frontend`.
-4.  **Deploy**: Click **Create Static Site**.
-5.  **Done!**: Visit your new frontend URL.
+    - **Build Command**: `npm run build`
+    - **Publish Directory**: `dist`
+5.  **Environment Variables** (Important!):
+    - Scroll down to "Environment Variables"
+    - Add Key: `VITE_API_BASE_URL`
+    - Value: `https://plagiarism-checker-backend.onrender.com` (your backend URL from Part 1)
+6.  **Deploy**: Click **Create Static Site**.
+7.  **Done!**: Visit your new frontend URL.
 
 ---
 

@@ -60,7 +60,7 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 
 ## 🛠️ Tech Stack
 
-### Backend
+### ⚙️ Backend
 
 - **FastAPI**: High-performance async web framework.
 - **Sentence Transformers**: State-of-the-art multilingual model for embeddings.
@@ -72,21 +72,45 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
 - **langdetect**: Auto-detects input language for optimized search.
 - **brotli**: Handles compressed responses from web servers.
 
-### Frontend
+### 🎨 Frontend
 
-- **HTML5 & CSS3**: Semantic structure with modern CSS variables, animations, and glassmorphism.
-- **JavaScript (ES6+)**: Vanilla JS for seamless interactions.
+- **React 18**: Component-based UI library for cleaner architecture.
+- **Vite**: Next-generation frontend tooling for blazing fast builds.
+- **CSS3 Variables**: Glassmorphism design system with custom design tokens.
 - **jsPDF**: Client-side PDF report generation.
 - **Inter Font**: Clean, modern typography.
+- **Environment Variables**: Vite-based configuration for API endpoints.
+
+## 📁 Project Structure
+
+```
+plagiarism-checker/
+├── backend/               # FastAPI backend server
+│   ├── main.py            # Main application file
+│   ├── requirements.txt   # Python dependencies
+│   └── .env               # Backend environment variables (create this)
+├── frontend/              # React frontend (current version)
+│   ├── src/               # Source files
+│   │   ├── components/    # React components
+│   │   ├── App.jsx        # Main app component
+│   │   └── index.css      # Global styles
+│   ├── .env               # Frontend environment variables (create this)
+│   ├── .env.example       # Environment variables template
+│   └── package.json       # Node dependencies
+├── frontend_legacy/       # Legacy HTML/CSS/JS frontend (deprecated)
+├── DEPLOYMENT.md          # Deployment guide
+└── README.md              # This file
+```
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 📋 Prerequisites
 
 - Python 3.8+
+- Node.js & npm (for the frontend)
 - A [SerpAPI](https://serpapi.com/) API Key (for web search functionality).
 
-### Installation
+### 📦 Installation
 
 1. **Clone the repository**
 
@@ -103,13 +127,40 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
    pip install -r requirements.txt
    ```
 
-3. **Environment Configuration**
+3. **Frontend Setup**
+   Navigate to the frontend directory and install dependencies:
+
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+4. **Environment Configuration**
+
+   **Backend:**
    Create a `.env` file in the `backend` directory and add your SerpAPI key:
+
    ```env
    SERPAPI_KEY=your_serpapi_key_here
    ```
 
-### Running the Application
+   **Frontend:**
+   Copy the example environment file and configure it:
+
+   ```bash
+   cd frontend
+   cp .env.example .env
+   ```
+
+   The default `.env` file is already configured for local development:
+
+   ```env
+   VITE_API_BASE_URL=http://127.0.0.1:9002
+   ```
+
+   For production deployment, update this to your deployed backend URL.
+
+### ▶️ Running the Application
 
 1. **Start the Backend Server**
 
@@ -121,9 +172,15 @@ A premium, high-accuracy plagiarism detection tool powered by advanced AI and se
    The server will start at `http://127.0.0.1:9002`.
 
 2. **Launch the Frontend**
-   Simply open the `frontend/index.html` file in your web browser.
 
-   _Tip: You can just double-click the file or drag it into Chrome/Edge/Firefox._
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+   Open the displayed URL (typically `http://localhost:5173`) in your browser.
+
+   **Note**: The frontend will automatically connect to the backend URL specified in the `.env` file.
 
 ## 📖 Usage Guide
 
@@ -146,6 +203,15 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 🚀 Deployment
 
 Want to take this project live? Check out our detailed [Deployment Guide](DEPLOYMENT.md) for step-by-step instructions on how to deploy to Render (Free Tier) or use Docker.
+
+## 📝 Note on Frontend Versions
+
+This project includes two frontend implementations:
+
+- **`frontend/`** (Recommended) - Modern React-based frontend with component architecture, better performance, and maintainability.
+- **`frontend_legacy/`** (Deprecated) - Original HTML/CSS/JavaScript implementation. Kept for reference but not actively maintained.
+
+**We recommend using the React frontend** (`frontend/`) for all new development and deployments.
 
 ## 📄 License
 
