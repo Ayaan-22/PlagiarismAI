@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PlagiarismAI — Threat Modeling Diagrams</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1F3864;
+    --blue: #2E74B5;
+    --red: #C00000;
+    --bg: #f5f6fa;
+    --surface: #ffffff;
+    --border: #e2e4ec;
+    --text: #1a1d2e;
+    --muted: #6b7280;
+    --tab-active: #1F3864;
+    --tab-text: #ffffff;
+    --shadow: 0 2px 12px rgba(31,56,100,0.10);
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    color: #fff;
+    padding: 28px 40px 22px;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .header-title { flex: 1; min-width: 260px; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 4px; }
+  .header p  { font-size: 13px; opacity: .75; }
+  .badge { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 4px 14px; font-size: 11px; font-weight: 600; letter-spacing:.5px; color:#fff; white-space:nowrap; }
+
+  /* ── Tab bar ── */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    padding: 16px 24px 0;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 8px 8px 0 0;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--muted);
+    background: transparent;
+    transition: all .18s;
+    user-select: none;
+  }
+  .tab:hover { color: var(--navy); background: #f0f4fb; }
+  .tab.active {
+    color: var(--navy);
+    background: var(--surface);
+    border-color: var(--border);
+    border-bottom-color: var(--surface);
+    margin-bottom: -2px;
+    font-weight: 700;
+  }
+
+  /* ── Pane ── */
+  .pane-wrap { background: var(--surface); padding: 0; }
+  .pane { display: none; padding: 20px 24px 24px; }
+  .pane.active { display: block; }
+  .pane-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .pane-desc  { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.6; }
+
+  svg { display: block; width: 100%; height: auto; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 0 0;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .litem { display: flex; align-items: center; gap: 6px; }
+  .lsq { width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── Footer ── */
+  .footer {
+    background: var(--navy);
+    color: rgba(255,255,255,.55);
+    font-size: 11px;
+    text-align: center;
+    padding: 14px 24px;
+  }
+  .footer strong { color: rgba(255,255,255,.9); }
+
+  @media print {
+    .tab-bar { display: none; }
+    .pane { display: block !important; page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">
+    <h1>PlagiarismAI — Threat Modeling Security Diagrams</h1>
+    <p>STRIDE · DREAD · PASTA · DFD · Secure Architecture &nbsp;|&nbsp; GitHub: Ayaan-22/PlagiarismAI</p>
+  </div>
+  <span class="badge">CONFIDENTIAL — ACADEMIC</span>
+  <span class="badge">April 2026</span>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="show(0)">1 · DFD Level 0</button>
+  <button class="tab" onclick="show(1)">2 · DFD Level 1</button>
+  <button class="tab" onclick="show(2)">3 · STRIDE Map</button>
+  <button class="tab" onclick="show(3)">4 · DREAD Heatmap</button>
+  <button class="tab" onclick="show(4)">5 · PASTA Attacks</button>
+  <button class="tab" onclick="show(5)">6 · Secure Architecture</button>
+</div>
+
+<div class="pane-wrap">
+
+<!-- ══════════════════════════════════════════════════
+     PANE 1 — DFD LEVEL 0
+══════════════════════════════════════════════════ -->
+<div class="pane active" id="pane0">
+  <div class="pane-title">DFD Level 0 — Context Diagram</div>
+  <div class="pane-desc">Shows the PlagiarismAI system as a black box with its three external entities. TB-1 (the entire internet boundary) is highlighted — there is no authentication, so any caller can interact with the system.</div>
+
+  <svg viewBox="0 0 680 390" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="a0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- TB-1 label -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" fill="#C00000" font-weight="700" x="340" y="18" text-anchor="middle">TB-1: Internet boundary — NO authentication enforced</text>
+
+    <!-- Central system -->
+    <rect x="220" y="140" width="240" height="110" rx="14" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#3C3489" x="340" y="187" text-anchor="middle">PlagiarismAI System</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#534AB7" x="340" y="207" text-anchor="middle">FastAPI · React · SentenceTransformer</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#534AB7" x="340" y="223" text-anchor="middle">Deployed on Render (AWS-backed)</text>
+
+    <!-- USER -->
+    <rect x="28" y="38" width="140" height="64" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.2"/>
+    <rect x="32" y="42" width="132" height="56" rx="2" fill="none" stroke="#5DCAA5" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#085041" x="98" y="67" text-anchor="middle">User</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#0F6E56" x="98" y="85" text-anchor="middle">Student / Researcher</text>
+
+    <!-- SERPAPI -->
+    <rect x="512" y="38" width="140" height="64" rx="4" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.2"/>
+    <rect x="516" y="42" width="132" height="56" rx="2" fill="none" stroke="#EF9F27" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#412402" x="582" y="67" text-anchor="middle">SerpAPI</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#854F0B" x="582" y="85" text-anchor="middle">Google Search proxy</text>
+
+    <!-- EXTERNAL WEB -->
+    <rect x="255" y="318" width="170" height="58" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="1.2"/>
+    <rect x="259" y="322" width="162" height="50" rx="2" fill="none" stroke="#F0997B" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#4A1B0C" x="340" y="344" text-anchor="middle">External Web Servers</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#993C1D" x="340" y="362" text-anchor="middle">Scraped HTML / PDF sources</text>
+
+    <!-- User → System -->
+    <path d="M168 72 Q210 72 220 162" fill="none" stroke="#1D9E75" stroke-width="1.4" marker-end="url(#a0)"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#0F6E56" x="185" y="118" text-anchor="middle">Document / text</text>
+
+    <!-- System → User -->
+    <path d="M222 202 Q155 210 120 104" fill="none" stroke="#1D9E75" stroke-width="1.4" marker-end="url(#a0)"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#0F6E56" x="148" y="178" text-anchor="middle">Results JSON</text>
+
+    <!-- System → SerpAPI -->
+    <path d="M457 165 Q505 130 512 96" fill="none" stroke="#BA7517" stroke-width="1.4" marker-end="url(#a0)"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#854F0B" x="508" y="125" text-anchor="middle">Query + API key</text>
+
+    <!-- SerpAPI → System -->
+    <path d="M514 110 Q494 158 460 178" fill="none" stroke="#BA7517" stroke-width="1.4" marker-end="url(#a0)"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#854F0B" x="538" y="162" text-anchor="middle">URLs + snippets</text>
+
+    <!-- System → ExtWeb (dashed = dangerous) -->
+    <path d="M340 250 L340 316" fill="none" stroke="#C00000" stroke-width="1.6" stroke-dasharray="6 3" marker-end="url(#a0)"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#C00000" x="370" y="286" text-anchor="start">HTTP (ssl=False)</text>
+
+    <!-- ExtWeb → System -->
+    <path d="M256 335 Q196 335 224 248" fill="none" stroke="#993C1D" stroke-width="1.4" marker-end="url(#a0)"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#993C1D" x="192" y="315" text-anchor="middle">Raw HTML</text>
+  </svg>
+
+  <div class="legend">
+    <div class="litem"><div class="lsq" style="background:#9FE1CB;border:1px solid #0F6E56"></div><span>User (external entity)</span></div>
+    <div class="litem"><div class="lsq" style="background:#FAC775;border:1px solid #854F0B"></div><span>SerpAPI (3rd-party)</span></div>
+    <div class="litem"><div class="lsq" style="background:#F0997B;border:1px solid #993C1D"></div><span>External web servers</span></div>
+    <div class="litem"><div class="lsq" style="background:#CECBF6;border:1px solid #534AB7"></div><span>PlagiarismAI system</span></div>
+    <div class="litem"><div class="lsq" style="background:transparent;border:1.5px dashed #C00000"></div><span>Dangerous / untrusted flow</span></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     PANE 2 — DFD LEVEL 1
+══════════════════════════════════════════════════ -->
+<div class="pane" id="pane1">
+  <div class="pane-title">DFD Level 1 — Internal Process Decomposition</div>
+  <div class="pane-desc">Expands the system into 6 internal processes (P1–P6), 2 data stores (DS1 in-memory cache, DS2 ML model), and 4 trust boundaries (TB-1 through TB-4). TB-3 is the most dangerous — SSL verification is disabled on all outbound scraping calls.</div>
+
+  <svg viewBox="0 0 680 630" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- TB-1 outer boundary -->
+    <rect x="6" y="6" width="668" height="618" rx="16" fill="none" stroke="#E24B4A" stroke-width="1.8" stroke-dasharray="10 5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#C00000" font-weight="700" x="18" y="22">TB-1: Internet boundary — unauthenticated (no API key, no JWT, no OAuth)</text>
+
+    <!-- TB-4: CORS wildcard boundary -->
+    <rect x="14" y="30" width="190" height="130" rx="10" fill="none" stroke="#E24B4A" stroke-width="1" stroke-dasharray="5 4"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#C00000" x="22" y="44">TB-4: CORS wildcard (*)</text>
+
+    <!-- USER -->
+    <rect x="22" y="52" width="118" height="56" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.2"/>
+    <rect x="26" y="56" width="110" height="48" rx="2" fill="none" stroke="#5DCAA5" stroke-width="0.7"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#085041" x="81" y="74" text-anchor="middle">User</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#0F6E56" x="81" y="92" text-anchor="middle">Browser / API client</text>
+
+    <!-- P1: Input Processing -->
+    <rect x="208" y="48" width="168" height="64" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" x="292" y="72" text-anchor="middle">P1: Input Processing</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="292" y="90" text-anchor="middle">File extract · chunk · lang detect</text>
+
+    <!-- P2: Citation Analysis -->
+    <rect x="444" y="48" width="168" height="64" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" x="528" y="72" text-anchor="middle">P2: Citation Analysis</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="528" y="90" text-anchor="middle">Regex CITATION_PATTERNS</text>
+
+    <!-- P3: Web Search -->
+    <rect x="208" y="192" width="168" height="64" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#412402" x="292" y="216" text-anchor="middle">P3: Web Search</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#854F0B" x="292" y="234" text-anchor="middle">SerpAPI call + cache check</text>
+
+    <!-- DS1: Search Cache (open-ended rect) -->
+    <rect x="444" y="192" width="168" height="64" rx="0" fill="none" stroke="#888780" stroke-width="1.2"/>
+    <line x1="444" y1="192" x2="444" y2="256" stroke="#888780" stroke-width="1.2"/>
+    <line x1="612" y1="192" x2="612" y2="256" stroke="#888780" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#2C2C2A" x="528" y="216" text-anchor="middle">DS1: Search Cache</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#5F5E5A" x="528" y="234" text-anchor="middle">In-memory OrderedDict (global)</text>
+
+    <!-- TB-3 dangerous boundary -->
+    <rect x="14" y="336" width="248" height="100" rx="10" fill="none" stroke="#C00000" stroke-width="1.8" stroke-dasharray="6 4"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#C00000" font-weight="700" x="22" y="350">TB-3: SSL disabled — CRITICAL RISK</text>
+
+    <!-- P4: Page Fetching -->
+    <rect x="208" y="358" width="168" height="64" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#4A1B0C" x="292" y="382" text-anchor="middle">P4: Page Fetching</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#C00000" x="292" y="400" text-anchor="middle">aiohttp ssl=False ← VULNERABLE</text>
+
+    <!-- DS2: ML Model Store -->
+    <rect x="444" y="358" width="168" height="64" rx="0" fill="none" stroke="#888780" stroke-width="1.2"/>
+    <line x1="444" y1="358" x2="444" y2="422" stroke="#888780" stroke-width="1.2"/>
+    <line x1="612" y1="358" x2="612" y2="422" stroke="#888780" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#2C2C2A" x="528" y="382" text-anchor="middle">DS2: ML Model Store</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#5F5E5A" x="528" y="400" text-anchor="middle">SentenceTransformer in RAM</text>
+
+    <!-- P5: Semantic Similarity -->
+    <rect x="208" y="490" width="168" height="64" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" x="292" y="514" text-anchor="middle">P5: Similarity Engine</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="292" y="532" text-anchor="middle">Cosine sim · 45% threshold</text>
+
+    <!-- P6: Result Aggregation -->
+    <rect x="444" y="490" width="168" height="64" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" x="528" y="514" text-anchor="middle">P6: Aggregation</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="528" y="532" text-anchor="middle">Filter · sort · serialise JSON</text>
+
+    <!-- TB-2: SerpAPI boundary -->
+    <rect x="420" y="554" width="236" height="64" rx="10" fill="none" stroke="#BA7517" stroke-width="1" stroke-dasharray="5 4"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#BA7517" x="428" y="568">TB-2: SerpAPI boundary</text>
+    <rect x="436" y="574" width="134" height="36" rx="4" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#412402" x="503" y="592" text-anchor="middle">SerpAPI (external)</text>
+
+    <!-- TB-3: External web entity -->
+    <rect x="22" y="578" width="148" height="36" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="1.2"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#4A1B0C" x="96" y="596" text-anchor="middle">External Web Servers</text>
+
+    <!-- ── Arrows ── -->
+    <!-- User → P1 -->
+    <path d="M140 80 L206 80" fill="none" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P1 → P2 -->
+    <path d="M376 80 L442 80" fill="none" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P1 → P3 -->
+    <path d="M292 112 L292 190" fill="none" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P3 ↔ DS1 -->
+    <path d="M376 224 L442 224" fill="none" stroke="#BA7517" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P3 → SerpAPI -->
+    <path d="M342 256 Q420 310 503 572" fill="none" stroke="#BA7517" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P3 → P4 -->
+    <path d="M292 256 L292 356" fill="none" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P4 → ExtWeb -->
+    <path d="M242 422 Q120 460 96 576" fill="none" stroke="#C00000" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#a1)"/>
+    <!-- DS2 → P5 -->
+    <path d="M444 390 L378 508" fill="none" stroke="#888780" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P4 → P5 -->
+    <path d="M292 422 L292 488" fill="none" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P5 → P6 -->
+    <path d="M376 522 L442 522" fill="none" stroke="#534AB7" stroke-width="1.2" marker-end="url(#a1)"/>
+    <!-- P6 → User (response) -->
+    <path d="M528 554 Q528 600 81 600 Q81 600 81 110" fill="none" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#a1)"/>
+  </svg>
+
+  <div class="legend">
+    <div class="litem"><div class="lsq" style="background:#EEEDFE;border:1px solid #534AB7"></div><span>Internal process</span></div>
+    <div class="litem"><div class="lsq" style="background:#FAEEDA;border:1px solid #854F0B"></div><span>SerpAPI interface</span></div>
+    <div class="litem"><div class="lsq" style="background:#FAECE7;border:1.5px solid #C00000"></div><span>Dangerous scraping layer</span></div>
+    <div class="litem"><div class="lsq" style="background:transparent;border:1px solid #888"></div><span>Data store</span></div>
+    <div class="litem"><div class="lsq" style="background:transparent;border:1.5px dashed #C00000"></div><span>Trust boundary (critical)</span></div>
+    <div class="litem"><div class="lsq" style="background:transparent;border:1px dashed #BA7517"></div><span>Trust boundary (medium)</span></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     PANE 3 — STRIDE MAP
+══════════════════════════════════════════════════ -->
+<div class="pane" id="pane2">
+  <div class="pane-title">STRIDE Threat Map</div>
+  <div class="pane-desc">All 18 identified threats categorised across the 6 STRIDE dimensions. Each box shows the specific threats, affected code, and impacted components derived from the PlagiarismAI repository.</div>
+
+  <svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- S — Spoofing -->
+    <rect x="14" y="14" width="206" height="150" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#042C53" x="117" y="36" text-anchor="middle">S — Spoofing</text>
+    <rect x="22" y="46" width="190" height="108" rx="7" fill="none" stroke="#378ADD" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#0C447C" x="117" y="66" text-anchor="middle">T-SPO-1: Anonymous API abuse</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#185FA5" x="117" y="82" text-anchor="middle">No auth on /check endpoint</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#0C447C" x="117" y="104" text-anchor="middle">T-SPO-2: MITM on web scraping</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#185FA5" x="117" y="120" text-anchor="middle">ssl=False → score manipulation</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#042C53" font-weight="600" x="117" y="146" text-anchor="middle">→ main.py, aiohttp connector</text>
+
+    <!-- T — Tampering -->
+    <rect x="237" y="14" width="206" height="150" rx="12" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#412402" x="340" y="36" text-anchor="middle">T — Tampering</text>
+    <rect x="245" y="46" width="190" height="108" rx="7" fill="none" stroke="#EF9F27" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#633806" x="340" y="66" text-anchor="middle">T-TAM-1: DOCX zip bomb upload</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#854F0B" x="340" y="82" text-anchor="middle">No post-extract size guard</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#633806" x="340" y="104" text-anchor="middle">T-TAM-2: Malicious URL injection</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#633806" x="340" y="122" text-anchor="middle">T-TAM-3: Search cache poisoning</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" font-weight="600" x="340" y="146" text-anchor="middle">→ extract_docx_text, SEARCH_CACHE</text>
+
+    <!-- R — Repudiation -->
+    <rect x="460" y="14" width="206" height="150" rx="12" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#2C2C2A" x="563" y="36" text-anchor="middle">R — Repudiation</text>
+    <rect x="468" y="46" width="190" height="108" rx="7" fill="none" stroke="#B4B2A9" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#444441" x="563" y="66" text-anchor="middle">T-REP-1: No audit trail</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#5F5E5A" x="563" y="82" text-anchor="middle">No structured request logging</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#444441" x="563" y="104" text-anchor="middle">T-REP-2: No request attribution</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#5F5E5A" x="563" y="120" text-anchor="middle">Quota theft undetectable</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#2C2C2A" font-weight="600" x="563" y="146" text-anchor="middle">→ all endpoints, logging module</text>
+
+    <!-- I — Info Disclosure -->
+    <rect x="14" y="184" width="206" height="168" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#04342C" x="117" y="206" text-anchor="middle">I — Info Disclosure</text>
+    <rect x="22" y="216" width="190" height="126" rx="7" fill="none" stroke="#5DCAA5" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#085041" x="117" y="236" text-anchor="middle">T-INF-1: API key via error messages</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#085041" x="117" y="256" text-anchor="middle">T-INF-2: Raw scraped content exposed</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#085041" x="117" y="276" text-anchor="middle">T-INF-3: Timing-based key inference</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#085041" x="117" y="296" text-anchor="middle">T-INF-4: User document leakage</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#04342C" font-weight="600" x="117" y="332" text-anchor="middle">→ JSON response, logs, SerpAPI queries</text>
+
+    <!-- D — Denial of Service -->
+    <rect x="237" y="184" width="206" height="168" rx="12" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#501313" x="340" y="206" text-anchor="middle">D — Denial of Service</text>
+    <rect x="245" y="216" width="190" height="126" rx="7" fill="none" stroke="#F09595" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#791F1F" x="340" y="236" text-anchor="middle">T-DOS-1: API flood (no rate limit)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#791F1F" x="340" y="256" text-anchor="middle">T-DOS-2: ML CPU exhaustion</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#791F1F" x="340" y="276" text-anchor="middle">T-DOS-3: Zip bomb memory crash</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#791F1F" x="340" y="296" text-anchor="middle">T-DOS-4: Web fetch amplification</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#501313" font-weight="600" x="340" y="332" text-anchor="middle">→ /check, SentenceTransformer, asyncio</text>
+
+    <!-- E — Elevation of Privilege -->
+    <rect x="460" y="184" width="206" height="168" rx="12" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#4A1B0C" x="563" y="206" text-anchor="middle">E — Elevation of Privilege</text>
+    <rect x="468" y="216" width="190" height="126" rx="7" fill="none" stroke="#F0997B" stroke-width="0.8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#712B13" x="563" y="236" text-anchor="middle">T-EOP-1: SSRF cloud metadata</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#993C1D" x="563" y="253" text-anchor="middle">169.254.169.254 bypass → IAM theft</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#712B13" x="563" y="276" text-anchor="middle">T-EOP-2: ReDoS citation regex</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#993C1D" x="563" y="292" text-anchor="middle">Catastrophic backtracking</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#712B13" x="563" y="312" text-anchor="middle">T-EOP-3: Global state race</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#4A1B0C" font-weight="600" x="563" y="342" text-anchor="middle">→ fetch_page_async, SEARCH_WARNING</text>
+
+    <!-- Summary bar -->
+    <rect x="14" y="370" width="652" height="56" rx="10" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#1F3864" x="340" y="394" text-anchor="middle">18 total threats identified across all STRIDE categories</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#5F5E5A" x="340" y="412" text-anchor="middle">Critical: T-SPO-1 · T-DOS-1 · T-DOS-3 · T-EOP-1  |  Most severe: SSRF (T-EOP-1) → full cloud account compromise</text>
+
+    <!-- Count badges -->
+    <rect x="22" y="436" width="60" height="22" rx="11" fill="#185FA5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#fff" x="52" y="447" text-anchor="middle">2 threats</text>
+    <rect x="245" y="436" width="60" height="22" rx="11" fill="#854F0B"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#fff" x="275" y="447" text-anchor="middle">3 threats</text>
+    <rect x="468" y="436" width="60" height="22" rx="11" fill="#5F5E5A"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#fff" x="498" y="447" text-anchor="middle">2 threats</text>
+    <rect x="22" y="464" width="60" height="22" rx="11" fill="#0F6E56"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#fff" x="52" y="475" text-anchor="middle">4 threats</text>
+    <rect x="245" y="464" width="60" height="22" rx="11" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#fff" x="275" y="475" text-anchor="middle">4 threats</text>
+    <rect x="468" y="464" width="60" height="22" rx="11" fill="#993C1D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#fff" x="498" y="475" text-anchor="middle">3 threats</text>
+  </svg>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     PANE 4 — DREAD HEATMAP
+══════════════════════════════════════════════════ -->
+<div class="pane" id="pane3">
+  <div class="pane-title">DREAD Risk Heatmap</div>
+  <div class="pane-desc">Score = D (Damage) + R (Reproducibility) + E (Exploitability) + A (Affected Users) + Di (Discoverability). Max = 50. Critical ≥ 40 · High 25–39 · Medium &lt; 25.</div>
+
+  <svg viewBox="0 0 680 510" xmlns="http://www.w3.org/2000/svg">
+    <!-- Header -->
+    <rect x="10" y="10" width="660" height="34" rx="6" fill="#1F3864"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="160" y="27" text-anchor="middle">Threat</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="358" y="27" text-anchor="middle">D</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="393" y="27" text-anchor="middle">R</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="428" y="27" text-anchor="middle">E</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="463" y="27" text-anchor="middle">A</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="498" y="27" text-anchor="middle">Di</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="548" y="27" text-anchor="middle">Total</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff" x="626" y="27" text-anchor="middle">Level</text>
+
+    <!-- Grid lines -->
+    <line x1="338" y1="44" x2="338" y2="502" stroke="#e2e4ec" stroke-width="0.8"/>
+    <line x1="374" y1="44" x2="374" y2="502" stroke="#e2e4ec" stroke-width="0.8"/>
+    <line x1="410" y1="44" x2="410" y2="502" stroke="#e2e4ec" stroke-width="0.8"/>
+    <line x1="446" y1="44" x2="446" y2="502" stroke="#e2e4ec" stroke-width="0.8"/>
+    <line x1="482" y1="44" x2="482" y2="502" stroke="#e2e4ec" stroke-width="0.8"/>
+    <line x1="518" y1="44" x2="518" y2="502" stroke="#e2e4ec" stroke-width="0.8"/>
+    <line x1="578" y1="44" x2="578" y2="502" stroke="#e2e4ec" stroke-width="0.8"/>
+
+    <!-- Row macro -->
+    <!-- R1 CRITICAL -->
+    <rect x="10" y="44" width="660" height="36" fill="#FCEBEB"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#791F1F" x="18" y="62" dominant-baseline="central">T-SPO-1: Anonymous API abuse — no authentication</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="358" y="62" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="393" y="62" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="428" y="62" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="463" y="62" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="498" y="62" text-anchor="middle" dominant-baseline="central">8</text>
+    <rect x="522" y="49" width="52" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="60" text-anchor="middle" dominant-baseline="central">48</text>
+    <rect x="582" y="49" width="84" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="60" text-anchor="middle" dominant-baseline="central">CRITICAL</text>
+
+    <!-- R2 -->
+    <rect x="10" y="80" width="660" height="36" fill="#F1EFE8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#2C2C2A" x="18" y="98" dominant-baseline="central">T-DOS-1: API flood — no rate limiting</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="358" y="98" text-anchor="middle" dominant-baseline="central">9</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="393" y="98" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="428" y="98" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="463" y="98" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="498" y="98" text-anchor="middle" dominant-baseline="central">9</text>
+    <rect x="522" y="85" width="52" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="96" text-anchor="middle" dominant-baseline="central">48</text>
+    <rect x="582" y="85" width="84" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="96" text-anchor="middle" dominant-baseline="central">CRITICAL</text>
+
+    <!-- R3 -->
+    <rect x="10" y="116" width="660" height="36" fill="#FCEBEB"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#791F1F" x="18" y="134" dominant-baseline="central">T-EOP-1: SSRF cloud metadata bypass (169.254.169.254)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="358" y="134" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="393" y="134" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="428" y="134" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="463" y="134" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#501313" x="498" y="134" text-anchor="middle" dominant-baseline="central">9</text>
+    <rect x="522" y="121" width="52" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="132" text-anchor="middle" dominant-baseline="central">43</text>
+    <rect x="582" y="121" width="84" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="132" text-anchor="middle" dominant-baseline="central">CRITICAL</text>
+
+    <!-- R4 -->
+    <rect x="10" y="152" width="660" height="36" fill="#F1EFE8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#2C2C2A" x="18" y="170" dominant-baseline="central">T-DOS-3: Zip bomb memory exhaustion</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="358" y="170" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="393" y="170" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="428" y="170" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="463" y="170" text-anchor="middle" dominant-baseline="central">10</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="498" y="170" text-anchor="middle" dominant-baseline="central">7</text>
+    <rect x="522" y="157" width="52" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="168" text-anchor="middle" dominant-baseline="central">43</text>
+    <rect x="582" y="157" width="84" height="22" rx="5" fill="#A32D2D"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="168" text-anchor="middle" dominant-baseline="central">CRITICAL</text>
+
+    <!-- R5 HIGH -->
+    <rect x="10" y="188" width="660" height="36" fill="#FAEEDA"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="18" y="206" dominant-baseline="central">T-SPO-2: MITM web scraping (ssl=False)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="358" y="206" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="393" y="206" text-anchor="middle" dominant-baseline="central">6</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="428" y="206" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="463" y="206" text-anchor="middle" dominant-baseline="central">9</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="498" y="206" text-anchor="middle" dominant-baseline="central">7</text>
+    <rect x="522" y="193" width="52" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="204" text-anchor="middle" dominant-baseline="central">37</text>
+    <rect x="582" y="193" width="84" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="204" text-anchor="middle" dominant-baseline="central">HIGH</text>
+
+    <!-- R6 -->
+    <rect x="10" y="224" width="660" height="36" fill="#F1EFE8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#2C2C2A" x="18" y="242" dominant-baseline="central">T-TAM-1: DOCX zip bomb upload</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="358" y="242" text-anchor="middle" dominant-baseline="central">9</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="393" y="242" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="428" y="242" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="463" y="242" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="498" y="242" text-anchor="middle" dominant-baseline="central">6</text>
+    <rect x="522" y="229" width="52" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="240" text-anchor="middle" dominant-baseline="central">38</text>
+    <rect x="582" y="229" width="84" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="240" text-anchor="middle" dominant-baseline="central">HIGH</text>
+
+    <!-- R7 -->
+    <rect x="10" y="260" width="660" height="36" fill="#FAEEDA"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="18" y="278" dominant-baseline="central">T-EOP-2: ReDoS citation regex (CITATION_PATTERNS)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="358" y="278" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="393" y="278" text-anchor="middle" dominant-baseline="central">6</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="428" y="278" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="463" y="278" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="498" y="278" text-anchor="middle" dominant-baseline="central">6</text>
+    <rect x="522" y="265" width="52" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="276" text-anchor="middle" dominant-baseline="central">35</text>
+    <rect x="582" y="265" width="84" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="276" text-anchor="middle" dominant-baseline="central">HIGH</text>
+
+    <!-- R8 -->
+    <rect x="10" y="296" width="660" height="36" fill="#F1EFE8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#2C2C2A" x="18" y="314" dominant-baseline="central">T-INF-4: Confidential document leakage to SerpAPI</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="358" y="314" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="393" y="314" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="428" y="314" text-anchor="middle" dominant-baseline="central">9</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="463" y="314" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="498" y="314" text-anchor="middle" dominant-baseline="central">5</text>
+    <rect x="522" y="301" width="52" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="312" text-anchor="middle" dominant-baseline="central">37</text>
+    <rect x="582" y="301" width="84" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="312" text-anchor="middle" dominant-baseline="central">HIGH</text>
+
+    <!-- R9 -->
+    <rect x="10" y="332" width="660" height="36" fill="#FAEEDA"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="18" y="350" dominant-baseline="central">T-TAM-3: Search cache poisoning (SEARCH_CACHE global)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="358" y="350" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="393" y="350" text-anchor="middle" dominant-baseline="central">6</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="428" y="350" text-anchor="middle" dominant-baseline="central">5</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="463" y="350" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#412402" x="498" y="350" text-anchor="middle" dominant-baseline="central">5</text>
+    <rect x="522" y="337" width="52" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="348" text-anchor="middle" dominant-baseline="central">31</text>
+    <rect x="582" y="337" width="84" height="22" rx="5" fill="#BA7517"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="348" text-anchor="middle" dominant-baseline="central">HIGH</text>
+
+    <!-- R10 MEDIUM -->
+    <rect x="10" y="368" width="660" height="36" fill="#EAF3DE"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="18" y="386" dominant-baseline="central">T-INF-2: Raw scraped content exposed in response JSON</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="358" y="386" text-anchor="middle" dominant-baseline="central">6</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="393" y="386" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="428" y="386" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="463" y="386" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="498" y="386" text-anchor="middle" dominant-baseline="central">3</text>
+    <rect x="522" y="373" width="52" height="22" rx="5" fill="#3B6D11"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="384" text-anchor="middle" dominant-baseline="central">30</text>
+    <rect x="582" y="373" width="84" height="22" rx="5" fill="#3B6D11"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="384" text-anchor="middle" dominant-baseline="central">MEDIUM</text>
+
+    <!-- R11 -->
+    <rect x="10" y="404" width="660" height="36" fill="#F1EFE8"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#2C2C2A" x="18" y="422" dominant-baseline="central">T-REP-1: No structured audit trail</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="358" y="422" text-anchor="middle" dominant-baseline="central">6</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="393" y="422" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="428" y="422" text-anchor="middle" dominant-baseline="central">8</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="463" y="422" text-anchor="middle" dominant-baseline="central">7</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" x="498" y="422" text-anchor="middle" dominant-baseline="central">3</text>
+    <rect x="522" y="409" width="52" height="22" rx="5" fill="#3B6D11"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="420" text-anchor="middle" dominant-baseline="central">32</text>
+    <rect x="582" y="409" width="84" height="22" rx="5" fill="#3B6D11"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="420" text-anchor="middle" dominant-baseline="central">MEDIUM</text>
+
+    <!-- R12 -->
+    <rect x="10" y="440" width="660" height="36" fill="#EAF3DE"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="18" y="458" dominant-baseline="central">T-EOP-3: Global state race (SEARCH_WARNING)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="358" y="458" text-anchor="middle" dominant-baseline="central">4</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="393" y="458" text-anchor="middle" dominant-baseline="central">5</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="428" y="458" text-anchor="middle" dominant-baseline="central">4</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="463" y="458" text-anchor="middle" dominant-baseline="central">6</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#173404" x="498" y="458" text-anchor="middle" dominant-baseline="central">5</text>
+    <rect x="522" y="445" width="52" height="22" rx="5" fill="#3B6D11"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="548" y="456" text-anchor="middle" dominant-baseline="central">24</text>
+    <rect x="582" y="445" width="84" height="22" rx="5" fill="#3B6D11"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#fff" x="624" y="456" text-anchor="middle" dominant-baseline="central">MEDIUM</text>
+
+    <!-- Border -->
+    <rect x="10" y="44" width="660" height="432" fill="none" stroke="#e2e4ec" stroke-width="0.8"/>
+    <rect x="10" y="10" width="660" height="466" rx="8" fill="none" stroke="#B4B2A9" stroke-width="0.8"/>
+  </svg>
+
+  <div class="legend">
+    <div class="litem"><div class="lsq" style="background:#A32D2D"></div><span>Critical (≥40)</span></div>
+    <div class="litem"><div class="lsq" style="background:#BA7517"></div><span>High (25–39)</span></div>
+    <div class="litem"><div class="lsq" style="background:#3B6D11"></div><span>Medium (&lt;25)</span></div>
+    <div class="litem" style="margin-left:auto;font-weight:600">D = Damage &nbsp;·&nbsp; R = Reproducibility &nbsp;·&nbsp; E = Exploitability &nbsp;·&nbsp; A = Affected Users &nbsp;·&nbsp; Di = Discoverability</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     PANE 5 — PASTA ATTACK SCENARIOS
+══════════════════════════════════════════════════ -->
+<div class="pane" id="pane4">
+  <div class="pane-title">PASTA — Attack Scenarios (Stage 6) + 7-Stage Summary</div>
+  <div class="pane-desc">Four realistic step-by-step attack chains derived from the repository, each showing how an attacker progresses from initial access to full impact. These correspond to PASTA Stage 6 (Attack Modeling).</div>
+
+  <svg viewBox="0 0 680 568" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- Attack 1 -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#A32D2D" x="14" y="18">Attack 1 — SerpAPI quota exhaustion (T-DOS-1 + T-SPO-1)</text>
+    <rect x="14" y="24" width="96" height="46" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="44" text-anchor="middle">Attacker</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="60" text-anchor="middle">no auth needed</text>
+    <line x1="110" y1="47" x2="152" y2="47" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="152" y="24" width="112" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="208" y="44" text-anchor="middle">POST /check</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="208" y="60" text-anchor="middle">100s of requests</text>
+    <line x1="264" y1="47" x2="306" y2="47" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="306" y="24" width="112" height="46" rx="7" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="362" y="44" text-anchor="middle">SerpAPI called</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="362" y="60" text-anchor="middle">×15 per request</text>
+    <line x1="418" y1="47" x2="460" y2="47" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="460" y="24" width="112" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="516" y="44" text-anchor="middle">Quota exhausted</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="516" y="60" text-anchor="middle">within minutes</text>
+    <line x1="572" y1="47" x2="614" y2="47" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="614" y="24" width="58" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="643" y="44" text-anchor="middle">Service</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="643" y="60" text-anchor="middle">down</text>
+
+    <!-- Attack 2 -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#A32D2D" x="14" y="102">Attack 2 — SSRF to AWS metadata service (T-EOP-1)</text>
+    <rect x="14" y="108" width="96" height="46" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="126" text-anchor="middle">Attacker</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="142" text-anchor="middle">controls domain</text>
+    <line x1="110" y1="131" x2="152" y2="131" stroke="#993C1D" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="152" y="108" width="112" height="46" rx="7" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#712B13" x="208" y="126" text-anchor="middle">attacker.com</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#712B13" x="208" y="142" text-anchor="middle">301 redirect</text>
+    <line x1="264" y1="131" x2="306" y2="131" stroke="#993C1D" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="306" y="108" width="112" height="46" rx="7" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="362" y="126" text-anchor="middle">is_safe_url()</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="362" y="142" text-anchor="middle">passes — no DNS</text>
+    <line x1="418" y1="131" x2="460" y2="131" stroke="#993C1D" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="460" y="108" width="122" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="521" y="126" text-anchor="middle">169.254.169.254</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="521" y="142" text-anchor="middle">IAM creds returned</text>
+    <line x1="582" y1="131" x2="616" y2="131" stroke="#993C1D" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="616" y="108" width="58" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="645" y="126" text-anchor="middle">Full AWS</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="645" y="142" text-anchor="middle">compromise</text>
+
+    <!-- Attack 3 -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#854F0B" x="14" y="186">Attack 3 — Stored XSS via matched_content field (T-INF-2)</text>
+    <rect x="14" y="192" width="96" height="46" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="210" text-anchor="middle">Attacker</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="226" text-anchor="middle">publishes page</text>
+    <line x1="110" y1="215" x2="152" y2="215" stroke="#BA7517" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="152" y="192" width="112" height="46" rx="7" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="208" y="210" text-anchor="middle">Google indexes</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="208" y="226" text-anchor="middle">&lt;script&gt; payload</text>
+    <line x1="264" y1="215" x2="306" y2="215" stroke="#BA7517" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="306" y="192" width="112" height="46" rx="7" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#3C3489" x="362" y="210" text-anchor="middle">Victim scans</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#3C3489" x="362" y="226" text-anchor="middle">SerpAPI → URL</text>
+    <line x1="418" y1="215" x2="460" y2="215" stroke="#BA7517" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="460" y="192" width="122" height="46" rx="7" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#712B13" x="521" y="210" text-anchor="middle">matched_content</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#712B13" x="521" y="226" text-anchor="middle">raw script in JSON</text>
+    <line x1="582" y1="215" x2="616" y2="215" stroke="#BA7517" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="616" y="192" width="58" height="46" rx="7" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="645" y="210" text-anchor="middle">Future XSS</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="645" y="226" text-anchor="middle">if innerHTML</text>
+
+    <!-- Attack 4 -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#A32D2D" x="14" y="270">Attack 4 — Zip bomb permanent DoS (T-TAM-1 + T-DOS-3)</text>
+    <rect x="14" y="276" width="96" height="46" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="294" text-anchor="middle">Attacker</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#444441" x="62" y="310" text-anchor="middle">crafts 4.9 MB DOCX</text>
+    <line x1="110" y1="299" x2="152" y2="299" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="152" y="276" width="112" height="46" rx="7" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="208" y="294" text-anchor="middle">Size check</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#412402" x="208" y="310" text-anchor="middle">passes (≤5 MB)</text>
+    <line x1="264" y1="299" x2="306" y2="299" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="306" y="276" width="112" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="362" y="294" text-anchor="middle">Decompress</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="362" y="310" text-anchor="middle">→ 100 MB text</text>
+    <line x1="418" y1="299" x2="460" y2="299" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="460" y="276" width="122" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="521" y="294" text-anchor="middle">142,857 coroutines</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="521" y="310" text-anchor="middle">asyncio.gather()</text>
+    <line x1="582" y1="299" x2="616" y2="299" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#a4)"/>
+    <rect x="616" y="276" width="58" height="46" rx="7" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="645" y="294" text-anchor="middle">OOM kill</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="645" y="310" text-anchor="middle">service restart</text>
+
+    <!-- PASTA 7 Stages -->
+    <rect x="12" y="342" width="656" height="214" rx="12" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#1F3864" x="340" y="364" text-anchor="middle">PASTA — 7-Stage Summary</text>
+
+    <rect x="22" y="374" width="90" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" font-weight="700" fill="#3C3489" x="67" y="394" text-anchor="middle">Stage 1</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="67" y="410" text-anchor="middle">Objectives</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="9" fill="#7F77DD" x="67" y="424" text-anchor="middle">Accuracy + privacy</text>
+
+    <rect x="124" y="374" width="90" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" font-weight="700" fill="#3C3489" x="169" y="394" text-anchor="middle">Stage 2</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="169" y="410" text-anchor="middle">Scope</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="9" fill="#7F77DD" x="169" y="424" text-anchor="middle">FastAPI + React</text>
+
+    <rect x="226" y="374" width="90" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" font-weight="700" fill="#3C3489" x="271" y="394" text-anchor="middle">Stage 3</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="271" y="410" text-anchor="middle">Decomposition</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="9" fill="#7F77DD" x="271" y="424" text-anchor="middle">P1–P6 · DS1/DS2</text>
+
+    <rect x="328" y="374" width="90" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" font-weight="700" fill="#412402" x="373" y="394" text-anchor="middle">Stage 4</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#854F0B" x="373" y="410" text-anchor="middle">Threat Analysis</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="9" fill="#BA7517" x="373" y="424" text-anchor="middle">18 STRIDE threats</text>
+
+    <rect x="430" y="374" width="90" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" font-weight="700" fill="#412402" x="475" y="394" text-anchor="middle">Stage 5</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#854F0B" x="475" y="410" text-anchor="middle">Vulnerabilities</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="9" fill="#BA7517" x="475" y="424" text-anchor="middle">11 CVEs mapped</text>
+
+    <rect x="532" y="374" width="90" height="56" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" font-weight="700" fill="#501313" x="577" y="394" text-anchor="middle">Stage 6</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#A32D2D" x="577" y="410" text-anchor="middle">Attack Models</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="9" fill="#C00000" x="577" y="424" text-anchor="middle">4 scenarios above</text>
+
+    <rect x="22" y="444" width="600" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" font-weight="700" fill="#085041" x="322" y="462" text-anchor="middle">Stage 7 — Risk Impact Analysis</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#0F6E56" x="322" y="480" text-anchor="middle">Business: SerpAPI cost + GDPR fines (4% revenue)  ·  Technical: OOM crash, IAM compromise  ·  Legal: FERPA / GDPR / copyright</text>
+  </svg>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     PANE 6 — SECURE ARCHITECTURE
+══════════════════════════════════════════════════ -->
+<div class="pane" id="pane5">
+  <div class="pane-title">Secure Architecture — Before vs After Comparison</div>
+  <div class="pane-desc">Side-by-side comparison of the original insecure implementation and the proposed hardened redesign. Every red element on the left maps to a green countermeasure on the right.</div>
+
+  <svg viewBox="0 0 680 582" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="a5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- BEFORE header -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#A32D2D" x="162" y="16" text-anchor="middle">BEFORE — Insecure</text>
+    <rect x="10" y="22" width="304" height="552" rx="14" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="7 4"/>
+
+    <!-- Internet box -->
+    <rect x="78" y="34" width="108" height="36" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#444441" x="132" y="52" text-anchor="middle" dominant-baseline="central">Internet / Attacker</text>
+
+    <rect x="30" y="80" width="254" height="26" rx="5" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="157" y="93" text-anchor="middle" dominant-baseline="central">No WAF · No rate limit · No DDoS protection</text>
+
+    <rect x="54" y="116" width="208" height="58" rx="10" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#501313" x="158" y="138" text-anchor="middle" dominant-baseline="central">FastAPI /check</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#C00000" x="158" y="158" text-anchor="middle" dominant-baseline="central">No auth · CORS * · No rate limit</text>
+
+    <rect x="30" y="184" width="254" height="24" rx="5" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="157" y="196" text-anchor="middle" dominant-baseline="central">aiohttp ssl=False — MITM possible</text>
+
+    <rect x="54" y="218" width="208" height="52" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#412402" x="158" y="238" text-anchor="middle" dominant-baseline="central">SerpAPI (bare API key)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#854F0B" x="158" y="256" text-anchor="middle" dominant-baseline="central">No response validation</text>
+
+    <rect x="30" y="280" width="254" height="24" rx="5" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="157" y="292" text-anchor="middle" dominant-baseline="central">is_safe_url() — no DNS · no 169.254 block</text>
+
+    <rect x="54" y="314" width="208" height="52" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#4A1B0C" x="158" y="334" text-anchor="middle" dominant-baseline="central">External web fetch</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#C00000" x="158" y="350" text-anchor="middle" dominant-baseline="central">Arbitrary URLs · no size limit</text>
+
+    <rect x="30" y="376" width="254" height="24" rx="5" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="157" y="388" text-anchor="middle" dominant-baseline="central">Global SEARCH_CACHE + SEARCH_WARNING state</text>
+
+    <rect x="54" y="410" width="208" height="52" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#3C3489" x="158" y="430" text-anchor="middle" dominant-baseline="central">ML Inference</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="158" y="448" text-anchor="middle" dominant-baseline="central">No chunk limit · no timeout</text>
+
+    <rect x="30" y="472" width="254" height="24" rx="5" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#791F1F" x="157" y="484" text-anchor="middle" dominant-baseline="central">No audit log · DEBUG level only</text>
+
+    <!-- Arrows before -->
+    <path d="M132 70 L132 80" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 106 L158 116" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 174 L158 184" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 208 L158 218" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 270 L158 280" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 304 L158 314" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 366 L158 376" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 400 L158 410" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M158 462 L158 472" fill="none" stroke="#E24B4A" stroke-width="1" marker-end="url(#a5)"/>
+
+    <!-- VS divider -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#5F5E5A" x="340" y="295" text-anchor="middle">vs</text>
+    <line x1="340" y1="22" x2="340" y2="572" stroke="#e2e4ec" stroke-width="1" stroke-dasharray="4 4"/>
+
+    <!-- AFTER header -->
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="#3B6D11" x="518" y="16" text-anchor="middle">AFTER — Secured</text>
+    <rect x="366" y="22" width="304" height="552" rx="14" fill="none" stroke="#639922" stroke-width="1.5"/>
+
+    <rect x="434" y="34" width="108" height="36" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="#444441" x="488" y="52" text-anchor="middle" dominant-baseline="central">Internet / Users</text>
+
+    <rect x="380" y="80" width="260" height="32" rx="7" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#173404" x="510" y="96" text-anchor="middle" dominant-baseline="central">Cloudflare WAF + DDoS protection + Rate Limit</text>
+
+    <rect x="406" y="122" width="208" height="58" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#04342C" x="510" y="144" text-anchor="middle" dominant-baseline="central">API Gateway + Auth</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#085041" x="510" y="162" text-anchor="middle" dominant-baseline="central">JWT bearer · 10 req/min · CORS strict</text>
+
+    <rect x="380" y="190" width="260" height="24" rx="5" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#173404" x="510" y="202" text-anchor="middle" dominant-baseline="central">TLS verified · ssl=create_default_context()</text>
+
+    <rect x="406" y="224" width="208" height="52" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#412402" x="510" y="244" text-anchor="middle" dominant-baseline="central">SerpAPI (schema validated)</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#854F0B" x="510" y="262" text-anchor="middle" dominant-baseline="central">JSON schema check · Vault key rotation</text>
+
+    <rect x="380" y="286" width="260" height="24" rx="5" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#173404" x="510" y="298" text-anchor="middle" dominant-baseline="central">DNS resolve + 169.254 block + no redirects</text>
+
+    <rect x="406" y="320" width="208" height="52" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#04342C" x="510" y="340" text-anchor="middle" dominant-baseline="central">Sandboxed web fetch</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#085041" x="510" y="358" text-anchor="middle" dominant-baseline="central">Max 512 KB · bleach.clean() output</text>
+
+    <rect x="380" y="382" width="260" height="24" rx="5" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#173404" x="510" y="394" text-anchor="middle" dominant-baseline="central">asyncio.Lock cache · per-request state only</text>
+
+    <rect x="406" y="416" width="208" height="52" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#3C3489" x="510" y="436" text-anchor="middle" dominant-baseline="central">ML Inference</text>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#534AB7" x="510" y="454" text-anchor="middle" dominant-baseline="central">Semaphore · chunk cap · re2 regex</text>
+
+    <rect x="380" y="478" width="260" height="26" rx="5" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+    <text font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="#042C53" x="510" y="491" text-anchor="middle" dominant-baseline="central">Structured audit log · SIEM integration</text>
+
+    <!-- Arrows after -->
+    <path d="M488 70 L488 80" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 112 L510 122" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 180 L510 190" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 214 L510 224" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 276 L510 286" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 310 L510 320" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 372 L510 382" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 406 L510 416" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+    <path d="M510 468 L510 478" fill="none" stroke="#3B6D11" stroke-width="1" marker-end="url(#a5)"/>
+  </svg>
+
+  <div class="legend">
+    <div class="litem"><div class="lsq" style="background:#FCEBEB;border:1.5px dashed #E24B4A"></div><span>Insecure / vulnerable layer</span></div>
+    <div class="litem"><div class="lsq" style="background:#EAF3DE;border:1px solid #3B6D11"></div><span>Secure control / mitigation</span></div>
+    <div class="litem"><div class="lsq" style="background:#E1F5EE;border:1.5px solid #0F6E56"></div><span>Hardened component</span></div>
+    <div class="litem"><div class="lsq" style="background:#E6F1FB;border:1px solid #185FA5"></div><span>New security capability</span></div>
+  </div>
+</div>
+
+</div><!-- /pane-wrap -->
+
+<div class="footer">
+  <strong>PlagiarismAI Threat Modeling Report</strong> &nbsp;·&nbsp; STRIDE · DREAD · PASTA &nbsp;·&nbsp; GitHub: Ayaan-22/PlagiarismAI &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp; Confidential — Academic Submission
+</div>
+
+<script>
+function show(i) {
+  document.querySelectorAll('.pane').forEach((p, j) => p.classList.toggle('active', i === j));
+  document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', i === j));
+}
+</script>
+</body>
+</html>

@@ -15,6 +15,7 @@ import LoadingOverlay from "./components/LoadingOverlay";
 // For production: https://your-backend.onrender.com
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:9002";
+const API_KEY = import.meta.env.VITE_API_KEY || "dev-api-key-123";
 const API_URL = `${API_BASE_URL}/check`;
 
 function App() {
@@ -28,6 +29,9 @@ function App() {
     try {
       const response = await fetch(API_URL, {
         method: "POST",
+        headers: {
+          "X-API-Key": API_KEY,
+        },
         body: formData,
       });
 

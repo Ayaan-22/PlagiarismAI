@@ -47,6 +47,10 @@ const UploadSection = ({ onSubmit, isLoading }) => {
     const extension = "." + file.name.split(".").pop().toLowerCase();
 
     if (validTypes.includes(file.type) || validExtensions.includes(extension)) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size exceeds 5MB limit. Please upload a smaller file.");
+        return;
+      }
       setSelectedFile(file);
     } else {
       alert("Please upload a PDF, DOCX, or TXT file");
@@ -66,9 +70,15 @@ const UploadSection = ({ onSubmit, isLoading }) => {
       alert("Please upload a file");
       return;
     }
-    if (activeTab === "text" && !textInput.trim()) {
-      alert("Please enter some text");
-      return;
+    if (activeTab === "text") {
+      if (!textInput.trim()) {
+        alert("Please enter some text");
+        return;
+      }
+      if (textInput.length > 50000) {
+        alert("Text input exceeds 50,000 characters limit. Please shorten your text.");
+        return;
+      }
     }
 
     const formData = new FormData();

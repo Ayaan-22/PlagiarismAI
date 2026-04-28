@@ -41,3 +41,5 @@ Thumbs.db
 # Project specific
 backend/.env
 .env
+
+threat_model_extracted.txt
