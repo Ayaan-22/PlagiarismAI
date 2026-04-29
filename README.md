@@ -88,6 +88,32 @@ sequenceDiagram
     F-->>U: Display Results Dashboard
 ```
 
+### 📊 Logical Data Model (ER Diagram)
+
+The system operates on a request-response model without persistent storage. The diagram below illustrates the logical relationships between the data entities processed during a single scan.
+
+```mermaid
+graph TD
+    API_KEY[API Key] -- authorizes --> REQ[Scan Request]
+    REQ -- divided into --> CHUNK[Text Chunks]
+    CHUNK -- finds --> MATCH[Source Matches]
+    CHUNK -- identifies --> CIT[Citations]
+    REQ -- generates --> SUM[Scan Summary]
+    MATCH -- references --> URL[Source URL]
+
+    subgraph Data Entities
+        REQ_DATA[scan_mode, raw_text]
+        CHUNK_DATA[index, content]
+        MATCH_DATA[similarity, matched_text]
+        SUM_DATA[plagiarism_percent, total_chunks]
+    end
+
+    REQ -.-> REQ_DATA
+    CHUNK -.-> CHUNK_DATA
+    MATCH -.-> MATCH_DATA
+    SUM -.-> SUM_DATA
+```
+
 1. **Input Processing**:
 
     - The backend accepts **PDF, DOCX, or TXT** files (or raw text).

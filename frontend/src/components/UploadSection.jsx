@@ -76,7 +76,9 @@ const UploadSection = ({ onSubmit, isLoading }) => {
         return;
       }
       if (textInput.length > 50000) {
-        alert("Text input exceeds 50,000 characters limit. Please shorten your text.");
+        alert(
+          "Text input exceeds 50,000 characters limit. Please shorten your text.",
+        );
         return;
       }
     }

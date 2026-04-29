@@ -43,3 +43,5 @@ backend/.env
 .env
 
 threat_model_extracted.txt
+PlagiarismAI_Final_Security_Audit.txt
+Post_Upgrade/

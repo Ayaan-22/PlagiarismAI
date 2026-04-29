@@ -49,7 +49,7 @@ function App() {
     } catch (error) {
       console.error("Error:", error);
       alert(
-        "An error occurred while analyzing your content. Please try again."
+        "An error occurred while analyzing your content. Please try again.",
       );
       setIsLoading(false);
     }

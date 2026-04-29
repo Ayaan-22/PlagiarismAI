@@ -35,3 +35,4 @@ def detect_citation(chunk: str) -> Tuple[bool, str]:
             return True, style
 
     return False, ""
+    return False, ""
