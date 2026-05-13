@@ -88,31 +88,57 @@ sequenceDiagram
     F-->>U: Display Results Dashboard
 ```
 
-### 📊 Logical Data Model (ER Diagram)
+### 📊 Logical Data Model (ER Diagram - Chen Notation)
 
-The system operates on a request-response model without persistent storage. The diagram below illustrates the logical relationships between the data entities processed during a single scan.
+The system operates on a request-response model without persistent storage. The diagram below illustrates the logical relationships between the data entities processed during a single scan, represented in **Classic Chen Notation**.
 
-```mermaid
-graph TD
-    API_KEY[API Key] -- authorizes --> REQ[Scan Request]
-    REQ -- divided into --> CHUNK[Text Chunks]
-    CHUNK -- finds --> MATCH[Source Matches]
-    CHUNK -- identifies --> CIT[Citations]
-    REQ -- generates --> SUM[Scan Summary]
-    MATCH -- references --> URL[Source URL]
-
-    subgraph Data Entities
-        REQ_DATA[scan_mode, raw_text]
-        CHUNK_DATA[index, content]
-        MATCH_DATA[similarity, matched_text]
-        SUM_DATA[plagiarism_percent, total_chunks]
-    end
-
-    REQ -.-> REQ_DATA
-    CHUNK -.-> CHUNK_DATA
-    MATCH -.-> MATCH_DATA
-    SUM -.-> SUM_DATA
+```text
+                                (ApiKey)
+                                   |
+                                [ USER ]
+                                   |
+                             < Submits > (1:N)
+                                   |
+       (InputType)          [ SCAN_REQUEST ] -------- (RequestID)
+           |                /       |      \
+       (RawContent) -------/   < Produces > \------- (ScanMode)
+                                    |        \
+                                  (1:1)       \ (1:N)
+                                    |          \
+           ((RiskLevel)) ---- [  REPORT  ]      [  CHUNK  ] ---- (ChunkID)
+                                    |           /    |    \
+                          {-Plagiarism%-}      / (1:N) \   (TextContent)
+                                    |         /         \
+                             < Summarizes >  /       (IsCited)
+                                    |       /
+                                    |      /
+         (Similarity) --------- [  MATCH  ] --------- (MatchID)
+                                    |      \
+                                    |       \------- {-Status-}
+                              < Found_In >
+                                    | (N:1)
+                                    |
+                           [ EXTERNAL_SOURCE ] ------ (URL)
+                                    |
+                                (Snippet)
 ```
+
+#### Entity-Relationship Breakdown
+
+| Entity | Primary Key | Attributes | Type |
+| :--- | :--- | :--- | :--- |
+| **USER** | `ApiKey` | N/A | System actor defined in config. |
+| **SCAN_REQUEST** | `RequestID` | `ScanMode`, `InputType`, `RawContent` | The core processing unit. |
+| **CHUNK** | `ChunkID` | `TextContent`, `Language`, `IsCited` | Segments of the source document. |
+| **REPORT** | `ReportID` | `Plagiarism%` (Derived), `RiskLevel` | Final analytical output. |
+| **MATCH** | `MatchID` | `Similarity`, `Status` (Derived), `MatchedText` | Associative link between user text and web sources. |
+| **EXTERNAL_SOURCE** | `URL` | `Snippet`, `FullText` | External data retrieved via SerpAPI. |
+
+#### Architectural Constraints & Normalization
+
+- **Stateless Domain:** No physical database is used; all entities are transient or cached in memory.
+- **Derived Logic:** `Plagiarism%` is calculated dynamically based on the ratio of matching chunks.
+- **One-to-One Alignment:** Each `SCAN_REQUEST` maps to exactly one `REPORT`.
 
 1. **Input Processing**:
 
